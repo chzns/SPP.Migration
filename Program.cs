@@ -1135,7 +1135,6 @@ a.SITE_CODE=b.NAME_0
 
         }
 
-
         public static void Insert_Tb_WfTask()
         {
             List<string> contract_M_no = new List<string>();
@@ -1296,7 +1295,6 @@ a.SITE_CODE=b.NAME_0
 
 
         }
-        //public static void Insert_
 
         public static void Insert_Tb_WfTaskDelaySetting()
         {
@@ -1368,7 +1366,6 @@ a.SITE_CODE=b.NAME_0
             }
 
         }
-
 
         public static void Insert_Tb_WfDelegation_History()
         {
