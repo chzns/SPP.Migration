@@ -1,0 +1,14 @@
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\SPP.Migration.exe.config
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\SPP.Migration.exe
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\SPP.Migration.pdb
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\EntityFramework.dll
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\EntityFramework.SqlServer.dll
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\SPP.Econtract1.0.dll
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\SPP.Econtract2.0.dll
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\SPP.Econtract1.0.pdb
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\SPP.Econtract2.0.pdb
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\EntityFramework.xml
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\bin\Debug\EntityFramework.SqlServer.xml
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\obj\Debug\SPP.Migration.csprojResolveAssemblyReference.cache
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\obj\Debug\SPP.Migration.exe
+c:\users\administrator\documents\visual studio 2015\Projects\SPP.Econtract1.0\SPP.Migration\obj\Debug\SPP.Migration.pdb

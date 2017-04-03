@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="PublicModelStoreContainer" CdmEntityContainer="PublicEntities">
+    <EntitySetMapping Name="CONTRACT_D">
+      <EntityTypeMapping TypeName="PublicModel.CONTRACT_D">
+        <MappingFragment StoreEntitySet="CONTRACT_D">
+          <ScalarProperty Name="CONTRACT_D_UID" ColumnName="CONTRACT_D_UID" />
+          <ScalarProperty Name="CONTRACT_M_UID" ColumnName="CONTRACT_M_UID" />
+          <ScalarProperty Name="TEMPLATE_TYPE" ColumnName="TEMPLATE_TYPE" />
+          <ScalarProperty Name="FILE_NAME" ColumnName="FILE_NAME" />
+          <ScalarProperty Name="UPLOAD_DATE" ColumnName="UPLOAD_DATE" />
+          <ScalarProperty Name="VERSION" ColumnName="VERSION" />
+          <ScalarProperty Name="LASTEST_VERSION" ColumnName="LASTEST_VERSION" />
+          <ScalarProperty Name="FILE_PATH" ColumnName="FILE_PATH" />
+          <ScalarProperty Name="DEL_MK" ColumnName="DEL_MK" />
+          <ScalarProperty Name="CREATOR" ColumnName="CREATOR" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping>
