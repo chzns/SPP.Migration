@@ -27,7 +27,7 @@ namespace SPP.Migration
             Insert_Contract_M();
             Insert_Tb_Contract_Attachment();
             Insert_Tb_Contract_WfTeam();
-            Insert_Tb_WfTaskDelaySetting();88660
+            Insert_Tb_WfTaskDelaySetting();
             Insert_Tb_WfDelegation();
             Insert_Tb_WfDelegation_History();
             Insert_Tb_WfEmail_StopExpirationNotice();
@@ -49,6 +49,7 @@ namespace SPP.Migration
         //SELECT* FROM dbo.ContractType_M
         //SELECT* FROM dbo.ContractType_D
         //SELECT* FROM  dbo.ContractTemplate
+        //
 
         public static void Insert_Tb_Users()
         {
