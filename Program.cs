@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace SPP.Migration
 {
-    class Program       
+    class Program
     {
         static void Main(string[] args)
         {
@@ -73,7 +73,7 @@ namespace SPP.Migration
                     ) t WHERE t.RN = 1
                                         ";
                 //account <> 'LiuK9'  and
-                 users_spp_list = context.SYSTEM_USERS.SqlQuery(sql).ToList();
+                users_spp_list = context.SYSTEM_USERS.SqlQuery(sql).ToList();
 
             }
 
@@ -231,6 +231,31 @@ namespace SPP.Migration
             //) b ON  a.SITE_NAME=b.SITE_CODE GROUP BY  a.SITE_NAME,a.DEPARTMENT,b.Company_Code    ORDER BY  a.SITE_NAME,DEPARTMENT
             //";
 
+            //            var sql = @"
+            //	SELECT DISTINCT SITE_NAME AS SITE_CODE ,DEPARTMENT AS DEPARTMENT,
+            //			b.Company_Code,
+            //'95BCBAB5-544C-465A-A6F1-4B9DBD'+ RIGHT('000000'+CAST(ROW_NUMBER()OVER( ORDER BY GETDATE() ) AS nvarchar(50)),6 )
+            //AS Department_UID,
+            //'' AS Company_UID 
+            //			 FROM 
+            //			(
+            //		     SELECT DISTINCT SITE_NAME,DEPARTMENT FROM  dbo.SYSTEM_USER_DEPARTMENT
+            //			UNION ALL
+            //			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM dbo.SYSTEM_DEPARTMENT
+            //			UNION ALL
+            //			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM  dbo.CONTRACT_M
+            //			UNION ALL
+            //			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE
+            //			)a 
+            //			LEFT JOIN  
+            //(
+            //select distinct NAME_0 as SITE_CODE , CCODE  as Company_Code  from SYSTEM_PLANT, SYSTEM_USER_PLANT
+            //where SYSTEM_PLANT.LOCATION = SYSTEM_USER_PLANT.PLANT_LOCATION
+            //and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
+            //) b ON  a.SITE_NAME=b.SITE_CODE GROUP BY  a.SITE_NAME,a.DEPARTMENT,b.Company_Code    ORDER BY  a.SITE_NAME,DEPARTMENT
+            //";
+
+
             var sql = @"
 	SELECT DISTINCT SITE_NAME AS SITE_CODE ,DEPARTMENT AS DEPARTMENT,
 			b.Company_Code,
@@ -239,13 +264,11 @@ AS Department_UID,
 '' AS Company_UID 
 			 FROM 
 			(
-		     SELECT DISTINCT SITE_NAME,DEPARTMENT FROM  dbo.SYSTEM_USER_DEPARTMENT
-			UNION ALL
-			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM dbo.SYSTEM_DEPARTMENT
-			UNION ALL
-			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM  dbo.CONTRACT_M
+
+		    SELECT DISTINCT SITE_NAME,DEPARTMENT FROM  dbo.SYSTEM_USER_DEPARTMENT
 			UNION ALL
 			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE
+
 			)a 
 			LEFT JOIN  
 (
@@ -715,7 +738,7 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                 model_Module.Users_PIC_UIDs = "1F08C006-5AB5-E611-83F5-005056BF221C";
                 model_Module.System_PIC_UIDs = "3908C006-5AB5-E611-83F5-005056BF221C,4A08C006-5AB5-E611-83F5-005056BF221C,0B08C006-5AB5-E611-83F5-005056BF221C,1608C006-5AB5-E611-83F5-005056BF221C";
                 model_Module.Is_Enable = true;
-                model_Module.Modified_UID =modified_guid;
+                model_Module.Modified_UID = modified_guid;
                 model_Module.Modified_Date = DateTime.Now;
                 model_Module.Modified_Remarks = "Users: Amber; System: CM, Amanda, Hongzhong, Eugene";
                 context.Module.Add(model_Module);
@@ -738,7 +761,7 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                 company = context.Company.ToList();
                 department = context.Department.ToList();
                 contract_d = context.ContractType_D.ToList();
-                typecode = context.TypeCode_L2.ToList();
+                //typecode = context.TypeCode_L2.ToList();
             }
 
             //            var sql = @"
@@ -770,31 +793,41 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
             //           WHERE    a.CONTRACT_TYPE <> '' AND CONTRACT_NO NOT IN ( '09361602031', '09361604008', '09361604028', '09361604030', 'GPB1512002', 'HUA-2015-0393-IE' )  AND  c.NT_ACCOUNT IS NOT NULL
 
             //";
-
             var sql = @"
-           SELECT   a.* ,
+            SELECT a.* ,
                     b.Company_Code ,
-                    '' AS Applicant_UID ,
-                    '' AS Department_UID ,
-                    '' AS ContractType_D_UID ,
-                    '' AS Is_Renew_UID ,
+                    '' AS Applicant_UID,
+                    '' AS Department_UID,
+                    '' AS ContractType_D_UID,
+                    '' AS Is_Renew_UID,
                     '' AS JabilEntity_UID,
-                    c.NT_ACCOUNT  AS Modify_NTID
-           FROM     dbo.CONTRACT_M a
-           LEFT JOIN ( SELECT DISTINCT
-                                NAME_0 AS SITE_CODE ,
+                    c.NT_ACCOUNT AS Modify_NTID
+          FROM     dbo.CONTRACT_M a
+           LEFT JOIN (SELECT DISTINCT
+                                NAME_0 AS SITE_CODE,
                                 CCODE AS Company_Code
-                       FROM     SYSTEM_PLANT ,
+                       FROM     SYSTEM_PLANT,
                                 SYSTEM_USER_PLANT
                        WHERE    SYSTEM_PLANT.LOCATION = SYSTEM_USER_PLANT.PLANT_LOCATION AND SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE ) b ON a.SITE_CODE = b.SITE_CODE
            LEFT JOIN dbo.CHANGE_HISTORY c
-           ON  a.CONTRACT_M_UID=c.OBJ_UID
+           ON a.CONTRACT_M_UID = c.OBJ_UID
            LEFT JOIN dbo.SYSTEM_USERS d
-           ON a.APPLICANT=d.ACCOUNT 
-           WHERE    a.CONTRACT_TYPE <> '' AND CONTRACT_NO NOT IN ( '09361602031', '09361604008', '09361604028', '09361604030', 'GPB1512002', 'HUA-2015-0393-IE' )  
+           ON a.APPLICANT = d.ACCOUNT
+           WHERE CONTRACT_NO NOT IN ('HUA-2015-0393-IE')
            AND  c.NT_ACCOUNT IS NOT NULL
            AND d.ACCOUNT  IS NOT NULL
+           AND   a.SITE_CODE + '#' + a.DEPARTMENT   IN(SELECT DISTINCT
+                                                        SITE_CODE + '#' + DEPARTMENT AS col
+                                               FROM     WF_REVIEW_TEAM_CONTRACT_SITE
+                                               UNION ALL
+                                               SELECT DISTINCT
+                                                        SITE_NAME + '#' + DEPARTMENT AS col
+                                               FROM     SYSTEM_User_DEPARTMENT)
 ";
+
+
+
+
 
 
 
@@ -827,25 +860,25 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
 
 
                     item.Department_UID = department.Where(m => m.Company_UID == new Guid(item.JabilEntity_UID) & m.Department_Name == item.DEPARTMENT).FirstOrDefault().Department_UID.ToString();
-                    if (item.IS_RENEW.HasValue)
-                    {
-                        if (Convert.ToInt32(item.IS_RENEW) == 1 || Convert.ToInt32(item.IS_RENEW) == 0)
-                        {
-                            item.Is_Renew_UID = typecode.Where(m => m.TypeCode_L2_Name == "New Contract").FirstOrDefault().TypeCode_L2_UID.ToString();
-                        }
-                        if (Convert.ToInt32(item.IS_RENEW) == 2)
-                        {
-                            item.Is_Renew_UID = typecode.Where(m => m.TypeCode_L2_Name == "Renew with same contract").FirstOrDefault().TypeCode_L2_UID.ToString();
-                        }
-                        if (Convert.ToInt32(item.IS_RENEW) == 3)
-                        {
-                            item.Is_Renew_UID = typecode.Where(m => m.TypeCode_L2_Name == "Renew with differ contract").FirstOrDefault().TypeCode_L2_UID.ToString();
-                        }
-                    }
-                    else
-                    {
-                        item.Is_Renew_UID = typecode.Where(m => m.TypeCode_L2_Name == "New Contract").FirstOrDefault().TypeCode_L2_UID.ToString();
-                    }
+                    //if (item.IS_RENEW.HasValue)
+                    //{
+                    //    if (Convert.ToInt32(item.IS_RENEW) == 1 || Convert.ToInt32(item.IS_RENEW) == 0)
+                    //    {
+                    //        item.Is_Renew_UID = typecode.Where(m => m.TypeCode_L2_Name == "New Contract").FirstOrDefault().TypeCode_L2_UID.ToString();
+                    //    }
+                    //    if (Convert.ToInt32(item.IS_RENEW) == 2)
+                    //    {
+                    //        item.Is_Renew_UID = typecode.Where(m => m.TypeCode_L2_Name == "Renew with same contract").FirstOrDefault().TypeCode_L2_UID.ToString();
+                    //    }
+                    //    if (Convert.ToInt32(item.IS_RENEW) == 3)
+                    //    {
+                    //        item.Is_Renew_UID = typecode.Where(m => m.TypeCode_L2_Name == "Renew with differ contract").FirstOrDefault().TypeCode_L2_UID.ToString();
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    item.Is_Renew_UID = typecode.Where(m => m.TypeCode_L2_Name == "New Contract").FirstOrDefault().TypeCode_L2_UID.ToString();
+                    //}
 
 
                     Contract_M model_Contract_M = new Contract_M();
@@ -870,7 +903,8 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     model_Contract_M.Vendor_Code = String.Empty;
                     model_Contract_M.Customer_Code = String.Empty;
                     model_Contract_M.Contractor = item.CONTRACTOR;
-                    model_Contract_M.Is_Renew_UID = new Guid(item.Is_Renew_UID);
+                    //model_Contract_M.Is_Renew = Convert.ToInt32(item.IS_RENEW);
+                    model_Contract_M.Is_Renew = item.IS_RENEW.HasValue ? Convert.ToInt32(item.IS_RENEW) : 1;
                     model_Contract_M.Previous_Contract_No = String.Empty;
                     model_Contract_M.Copies = item.CONTRACT_COPIES;
                     if (item.CONTRACT_VALUE != 0)
@@ -945,26 +979,41 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
 
             List<WF_REVIEW_TEAM_CONTRACT_SITE> reviewTeam = new List<WF_REVIEW_TEAM_CONTRACT_SITE>();
             List<CONTRACT_D> contract_d = new List<CONTRACT_D>();
-//            var sql = @"
-//SELECT a.*,b.ACCOUNT FROM CONTRACT_D a
-//LEFT JOIN dbo.SYSTEM_USERS b ON a.CREATOR=b.ACCOUNT 
-//WHERE CONTRACT_M_UID IN  (SELECT CONTRACT_M_UID FROM dbo.CONTRACT_M where  CONTRACT_TYPE <> '' AND CONTRACT_NO NOT IN ( '09361602031', '09361604008', '09361604028', '09361604030', 'GPB1512002', 'HUA-2015-0393-IE' ) ) AND b.ACCOUNT IS NOT NULL 
-//"
-//;
+            //            var sql = @"
+            //SELECT a.*,b.ACCOUNT FROM CONTRACT_D a
+            //LEFT JOIN dbo.SYSTEM_USERS b ON a.CREATOR=b.ACCOUNT 
+            //WHERE CONTRACT_M_UID IN  (SELECT CONTRACT_M_UID FROM dbo.CONTRACT_M where  CONTRACT_TYPE <> '' AND CONTRACT_NO NOT IN ( '09361602031', '09361604008', '09361604028', '09361604030', 'GPB1512002', 'HUA-2015-0393-IE' ) ) AND b.ACCOUNT IS NOT NULL 
+            //"
+            //;
 
-//            var sql = @"
-//SELECT  *
-//FROM    CONTRACT_D
-//WHERE   CONTRACT_M_UID IN ( SELECT  CONTRACT_M_UID
-//                            FROM    dbo.CONTRACT_M a LEFT JOIN  dbo.SYSTEM_USERS b ON
-//                            a.APPLICANT=b.ACCOUNT
-//                            LEFT JOIN  dbo.CHANGE_HISTORY c
-//                            ON a.APPLICANT=c.NT_ACCOUNT
-//                            WHERE   CONTRACT_TYPE <> '' AND CONTRACT_NO NOT IN ( '09361602031', '09361604008', '09361604028', '09361604030', 'GPB1512002', 'HUA-2015-0393-IE' )
-//                            AND b.ACCOUNT IS NOT NULL
-//                            AND d.NT_ACCOUNT IS NOT NULL
-//                             )
-//";
+            //            var sql = @"
+            //SELECT  *
+            //FROM    CONTRACT_D
+            //WHERE   CONTRACT_M_UID IN ( SELECT  CONTRACT_M_UID
+            //                            FROM    dbo.CONTRACT_M a LEFT JOIN  dbo.SYSTEM_USERS b ON
+            //                            a.APPLICANT=b.ACCOUNT
+            //                            LEFT JOIN  dbo.CHANGE_HISTORY c
+            //                            ON a.APPLICANT=c.NT_ACCOUNT
+            //                            WHERE   CONTRACT_TYPE <> '' AND CONTRACT_NO NOT IN ( '09361602031', '09361604008', '09361604028', '09361604030', 'GPB1512002', 'HUA-2015-0393-IE' )
+            //                            AND b.ACCOUNT IS NOT NULL
+            //                            AND d.NT_ACCOUNT IS NOT NULL
+            //                             )
+            //";
+
+            //            var sql = @"
+            //SELECT  *
+            //FROM    CONTRACT_D
+            //WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
+            //                            FROM    dbo.CONTRACT_M a INNER JOIN  dbo.SYSTEM_USERS b ON
+            //                            a.APPLICANT=b.ACCOUNT
+
+            //                            WHERE  
+            // CONTRACT_TYPE <> '' AND CONTRACT_NO NOT IN ( '09361602031', '09361604008', '09361604028', '09361604030', 'GPB1512002', 'HUA-2015-0393-IE' )   AND 
+            //                          b.ACCOUNT IS NOT NULL
+
+            //                             )
+            //";
+
 
             var sql = @"
 SELECT  *
@@ -973,20 +1022,23 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                             FROM    dbo.CONTRACT_M a INNER JOIN  dbo.SYSTEM_USERS b ON
                             a.APPLICANT=b.ACCOUNT
                       
-                            WHERE   CONTRACT_TYPE <> '' AND CONTRACT_NO NOT IN ( '09361602031', '09361604008', '09361604028', '09361604030', 'GPB1512002', 'HUA-2015-0393-IE' )
-                            AND b.ACCOUNT IS NOT NULL
+                            WHERE  
+ CONTRACT_NO NOT IN ('HUA-2015-0393-IE' )   AND 
+                          b.ACCOUNT IS NOT NULL
                            
                              )
 ";
 
+
+
             List<Guid> contract_M_uid_str = new List<Guid>();
             using (var context = new SPP_MVC_Entities())
             {
-                contract_M_uid_str= context.Contract_M.Select(m => m.Contract_M_UID).ToList<Guid>();
+                contract_M_uid_str = context.Contract_M.Select(m => m.Contract_M_UID).ToList<Guid>();
 
             }
 
-           
+
 
             using (var context = new SPP_ProductionEntities())
             {
@@ -1003,6 +1055,8 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
             {
                 users = context.Users.ToList();
 
+                //var contract_m_all = context.Contract_M.ToList();
+
                 foreach (var item in contract_d)
                 {
                     Contract_Attachment model_Contract_Attachment = new Contract_Attachment();
@@ -1010,15 +1064,37 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                     model_Contract_Attachment.Contract_M_UID = new Guid(item.CONTRACT_M_UID);
                     model_Contract_Attachment.Attachment_Type = item.TEMPLATE_TYPE;
                     model_Contract_Attachment.System_File_Name = item.FILE_NAME;
-                    model_Contract_Attachment.Original_File_Name = item.FILE_NAME; ;
-                    model_Contract_Attachment.Display_File_Name = item.FILE_NAME; ;
+                    model_Contract_Attachment.Original_File_Name = item.FILE_NAME;
+                    model_Contract_Attachment.Display_File_Name = item.FILE_NAME;
+
+                    //var contract_m = contract_m_all.Where(m => m.Contract_M_UID == new Guid(item.CONTRACT_M_UID)).FirstOrDefault();
+                    //if (item.TEMPLATE_TYPE=="1")
+                    //{
+
+                    //    model_Contract_Attachment.Display_File_Name = contract_m.Contract_No+"_"+ contract_m.Contractor+"_"+contract_m.Contract_Name+ "_Draft Version.pdf";
+                    //}
+                    //if (item.TEMPLATE_TYPE == "3")
+                    //{
+                    //    model_Contract_Attachment.Display_File_Name = contract_m.Contract_No + "_" + contract_m.Contractor + "_" + contract_m.Contract_Name + "_Approval Version.pdf";
+                    //}
+                    //if (item.TEMPLATE_TYPE == "4")
+                    //{
+                    //    model_Contract_Attachment.Display_File_Name = contract_m.Contract_No + "_" + contract_m.Contractor + "_" + contract_m.Contract_Name + "_Final Version.pdf";
+                    //}
                     model_Contract_Attachment.File_Size = 0;
-                    model_Contract_Attachment.File_Path = String.Empty;
+
                     model_Contract_Attachment.Tempkey = Guid.Empty;
-                    model_Contract_Attachment.Uploaded_UID =users.Where(m=>m.User_NTID.ToLower()==item.CREATOR.ToLower()).FirstOrDefault().Users_UID;
-                    model_Contract_Attachment.Uploaded_Date =Convert.ToDateTime(item.UPLOAD_DATE);
+                    model_Contract_Attachment.Uploaded_UID = users.Where(m => m.User_NTID.ToLower() == item.CREATOR.ToLower()).FirstOrDefault().Users_UID;
+                    model_Contract_Attachment.Uploaded_Date = Convert.ToDateTime(item.UPLOAD_DATE);
+
+                    var newFileName = model_Contract_Attachment.Uploaded_Date.ToString("yyMMddhhmmss") + DateTime.Now.Millisecond.ToString() + ".x";
+                    var newFilePath = string.Format(@"Temp/{0}", newFileName);
+                    model_Contract_Attachment.System_File_Name = newFileName;//导入改名称
+
+                    model_Contract_Attachment.File_Path = @"FileVault/" + newFileName;
+
                     attachment_list.Add(model_Contract_Attachment);
-         
+
                 }
 
                 context.Contract_Attachment.AddRange(attachment_list);
@@ -1129,7 +1205,7 @@ a.SITE_CODE=b.NAME_0
 
             }
 
-           
+
 
 
 
@@ -1154,7 +1230,7 @@ a.SITE_CODE=b.NAME_0
                 //wf_old_task = context.WF_TASK.Where(m => contract_M_uid_str.Contains(m.UID.ToLower()) && string.IsNullOrEmpty(m.STATE)).ToList();
 
                 wf_old_task = context.WF_TASK.Where(m => m.STATE == null).ToList();
-                wf_old_task= wf_old_task.Where(m=> contract_M_no.Contains(m.OBJ_NO.ToLower())).ToList();
+                wf_old_task = wf_old_task.Where(m => contract_M_no.Contains(m.OBJ_NO.ToLower())).ToList();
                 //wf_old_task = context.WF_TASK.ToList().Where(m => contract_M_uid_str.Contains(new Guid(m.UID)) & m.STATE != null).ToList();
 
             }
@@ -1162,7 +1238,7 @@ a.SITE_CODE=b.NAME_0
             using (var context = new SPP_MVC_Entities())
             {
                 //context.Database.CommandTimeout = 60 * 5;
-                List<WfTask> WfTask_list= new List<WfTask>();
+                List<WfTask> WfTask_list = new List<WfTask>();
 
                 foreach (var item in wf_old_task)
                 {
@@ -1183,8 +1259,8 @@ a.SITE_CODE=b.NAME_0
                     {
                         model_WfTask_History.Delegation_From_UID = users.Where(m => m.User_NTID.Trim().ToLower() == item.DELEGATE_FROM.Trim().ToLower()).FirstOrDefault().Users_UID;
                     }
-        
-        
+
+
                     model_WfTask_History.Resubmit_Routing = null;
                     WfTask_list.Add(model_WfTask_History);
 
@@ -1213,7 +1289,7 @@ a.SITE_CODE=b.NAME_0
             {
 
                 //context.Database.CommandTimeout = 3600 * 2;
-                wf_old_task = context.WF_TASK.Where(m =>!string.IsNullOrEmpty(m.STATE)).ToList();
+                wf_old_task = context.WF_TASK.Where(m => !string.IsNullOrEmpty(m.STATE)).ToList();
                 //wf_old_task = context.WF_TASK.Where(m => contract_M_no.Contains(m.OBJ_NO.ToLower())).ToList();
                 //wf_old_task = context.WF_TASK.ToList().Where(m => contract_M_uid_str.Contains(new .uid(m.UID)) & m.STATE != null).ToList();
 
@@ -1229,7 +1305,7 @@ a.SITE_CODE=b.NAME_0
                     if (contract_M_no.Contains(item.OBJ_NO))
                     {
                         var user = users.Where(m => m.User_NTID.ToLower().Trim() == item.OWNER.ToLower().Trim()).FirstOrDefault();
-                        if (user!=null)
+                        if (user != null)
                         {
                             WfTask_History model_WfTask_History = new WfTask_History();
                             model_WfTask_History.WfTask_History_UID = new Guid(item.UID);
@@ -1251,12 +1327,12 @@ a.SITE_CODE=b.NAME_0
                                     model_WfTask_History.Comments = item.COMMENTS.Substring(0, 500);
                                 }
                             }
-                           
+
 
                             model_WfTask_History.Assigned_Date = Convert.ToDateTime(item.ASSIGN_DATETIME);
                             model_WfTask_History.Completed_Date = Convert.ToDateTime(item.COMPLETE_DATETIME);
                             model_WfTask_History.Return_Times = Convert.ToInt32(item.REVIEW_LOOP);
-                            if (item.DELEGATE_FROM != null&&!string.IsNullOrEmpty(item.DELEGATE_FROM))
+                            if (item.DELEGATE_FROM != null && !string.IsNullOrEmpty(item.DELEGATE_FROM))
                             {
                                 model_WfTask_History.Delegation_From_UID = users.Where(m => m.User_NTID.ToLower().Trim() == item.DELEGATE_FROM.ToLower().Trim()).FirstOrDefault().Users_UID;
                             }
@@ -1265,7 +1341,7 @@ a.SITE_CODE=b.NAME_0
                             model_WfTask_History.Resubmit_Routing = null;
                             WfTask_History_list.Add(model_WfTask_History);
                         }
-                        
+
 
                     }
 
@@ -1302,7 +1378,7 @@ a.SITE_CODE=b.NAME_0
             List<WF_TASK_DELAY_CONFIG> delay_config = new List<WF_TASK_DELAY_CONFIG>();
             using (var context = new SPP_ProductionEntities())
             {
-                 delay_config = context.WF_TASK_DELAY_CONFIG.ToList();
+                delay_config = context.WF_TASK_DELAY_CONFIG.ToList();
             }
 
             List<WfTaskDelaySetting> delay_setting_list = new List<WfTaskDelaySetting>();
@@ -1333,7 +1409,7 @@ a.SITE_CODE=b.NAME_0
         public static void Insert_Tb_WfDelegation()
         {
             List<CONTRACT_DELEGATION> CONTRACT_DELEGATION_list = new List<CONTRACT_DELEGATION>();
-           
+
             using (var context = new SPP_ProductionEntities())
             {
                 CONTRACT_DELEGATION_list = context.CONTRACT_DELEGATION.ToList();
@@ -1350,11 +1426,11 @@ a.SITE_CODE=b.NAME_0
                     WfDelegation model_WfDelegation = new WfDelegation();
                     model_WfDelegation.WfDelegation_UID = Guid.NewGuid();
                     model_WfDelegation.Module_UID = module_uid;
-                    model_WfDelegation.Principal_UID = users.Where(m => m.User_NTID.Trim().ToLower()==item.CURRENT_USER.Trim().ToLower()).FirstOrDefault().Users_UID;
+                    model_WfDelegation.Principal_UID = users.Where(m => m.User_NTID.Trim().ToLower() == item.CURRENT_USER.Trim().ToLower()).FirstOrDefault().Users_UID;
                     model_WfDelegation.Deputy_UID = users.Where(m => m.User_NTID.Trim().ToLower() == item.DEPUTY_USER.Trim().ToLower()).FirstOrDefault().Users_UID;
-                    model_WfDelegation.Begin_Date =item.START_DATE;
+                    model_WfDelegation.Begin_Date = item.START_DATE;
                     model_WfDelegation.End_Date = item.END_DATE;
-                    model_WfDelegation.Modified_UID =modified_guid;
+                    model_WfDelegation.Modified_UID = modified_guid;
                     model_WfDelegation.Modified_Date = DateTime.Now;
                     model_WfDelegation.Modified_Remarks = item.REMARK;
                     WfDelegation_list.Add(model_WfDelegation);
@@ -1423,10 +1499,10 @@ a.SITE_CODE=b.NAME_0
                 {
                     WfEmail_StopExpirationNotice model_WfEmail_StopExpirationNotice = new WfEmail_StopExpirationNotice();
                     model_WfEmail_StopExpirationNotice.WfEmail_StopExpirationNotice_UID = Guid.NewGuid();
-                    model_WfEmail_StopExpirationNotice.Obj_Table ="Contract_M";
-                    model_WfEmail_StopExpirationNotice.Obj_No =item.CONTRACT_NO;
+                    model_WfEmail_StopExpirationNotice.Obj_Table = "Contract_M";
+                    model_WfEmail_StopExpirationNotice.Obj_No = item.CONTRACT_NO;
                     model_WfEmail_StopExpirationNotice.Is_Renew = Convert.ToBoolean(item.IS_RENEW);
-                    model_WfEmail_StopExpirationNotice.Modified_UID =modified_guid;
+                    model_WfEmail_StopExpirationNotice.Modified_UID = modified_guid;
                     model_WfEmail_StopExpirationNotice.Modified_Date = DateTime.Now;
                     model_WfEmail_StopExpirationNotice.Modified_Remarks = String.Empty;
                     WfEmail_StopExpirationNotice_list.Add(model_WfEmail_StopExpirationNotice);
@@ -1435,7 +1511,7 @@ a.SITE_CODE=b.NAME_0
                 context.WfEmail_StopExpirationNotice.AddRange(WfEmail_StopExpirationNotice_list);
                 context.SaveChanges();
             }
-            
+
 
 
         }
@@ -1445,12 +1521,12 @@ a.SITE_CODE=b.NAME_0
             WF_TASK wf_task = new WF_TASK();
 
             SPP_Produciton_BaseRepository<WF_TASK> w = new SPP_Produciton_BaseRepository<WF_TASK>();
-            w.LoadEntities(m=>m.OBJ_NO!=null).FirstOrDefault();
+            w.LoadEntities(m => m.OBJ_NO != null).FirstOrDefault();
             //w.AddEntities();
 
         }
 
-       
+
     }
 
     //SITE_CODE DEPARTMENT  Company_Code Department_UID, Company_UID
