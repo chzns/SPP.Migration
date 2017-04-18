@@ -14,7 +14,38 @@ namespace SPP.Migration
     {
         static void Main(string[] args)
         {
+
+            #region Contract Applicant -------------------Add By Hongzhong 2017/04
             //Delete_ALL();
+            //Insert_Tb_Users();
+            //Insert_Tb_Company();
+            //Insert_Tb_DepartMent();
+            //Insert_Tb_Users_CompanyDepartment();
+            //Insert_Tb_ContractType_M();
+            //Insert_Tb_ContractType_D();
+            //Insert_Tb_ContractTemplate();
+            //Insert_TypeCode_Data();
+            //Insert_Tb_Module();
+            //Insert_Contract_M();
+            //Insert_Tb_Contract_Attachment();
+            //Insert_Tb_Contract_WfTeam();
+            //Insert_Tb_WfTaskDelaySetting();
+            //Insert_Tb_WfDelegation();
+            //Insert_Tb_WfDelegation_History();
+            //Insert_Tb_WfEmail_StopExpirationNotice();
+            //Insert_Tb_WfTask();
+            //Insert_Tb_WfTask_History();
+            ////Delete_ALL();
+            //test();
+            #endregion
+            //migration();
+            //test_Data();
+            Insert_Tb_Contract_WfTeam();
+
+        }
+
+        public static void migration()
+        {
             Insert_Tb_Users();
             Insert_Tb_Company();
             Insert_Tb_DepartMent();
@@ -33,8 +64,6 @@ namespace SPP.Migration
             Insert_Tb_WfEmail_StopExpirationNotice();
             Insert_Tb_WfTask();
             Insert_Tb_WfTask_History();
-            //Delete_ALL();
-            //test();
 
         }
 
@@ -547,6 +576,9 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                 List<ContractTemplate> ContractTemplate_list = new List<ContractTemplate>();
                 foreach (var item in insert_tb_contracttemplate_1)
                 {
+
+
+
                     ContractTemplate model_ContractTemplate = new ContractTemplate();
                     model_ContractTemplate.ContractTemplate_UID = Guid.NewGuid();
                     model_ContractTemplate.Company_UID = new Guid(item.Company_UID);
@@ -557,6 +589,11 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     model_ContractTemplate.File_Size = 0;
                     model_ContractTemplate.File_Path = "";
                     model_ContractTemplate.Tempkey = Guid.Empty;
+
+
+
+
+
                     if (item.DEL_MK == "Y")
                     {
                         model_ContractTemplate.Is_Enable = false;
@@ -568,6 +605,11 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     model_ContractTemplate.Modified_UID = modified_guid;
                     model_ContractTemplate.Modified_Date = DateTime.Now;
                     model_ContractTemplate.Modified_Remarks = item.TEMPLATE_DESC;
+
+                    var newFileName = model_ContractTemplate.Modified_Date.ToString("yyMMddhhmmss") + DateTime.Now.Millisecond.ToString() + ".x";
+                    var newFilePath = string.Format(@"Temp/{0}", newFileName);
+                    model_ContractTemplate.System_File_Name = newFileName;//导入改名称
+                    model_ContractTemplate.File_Path = @"FileVault/" + newFileName;
 
                     ContractTemplate_list.Add(model_ContractTemplate);
                 }
@@ -1128,6 +1170,264 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
             return re;
         }
 
+
+        private static void InsertRoleUsers(Contract_WfTeam model, Insert_Tb_Contract_WfTeam_1 old_team, List<Users> users)
+        {
+            using (var context = new SPP_MVC_Entities())
+            {
+                List<Contract_WfTeam> Contract_WfTeam_List = new List<Contract_WfTeam>();
+                if (!string.IsNullOrEmpty(old_team.FM1))
+                {
+                  
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    var user_uid = users.Where(m => m.User_NTID.ToLower() == old_team.FM1.Trim().ToLower()).FirstOrDefault().Users_UID;
+                    model_Contract_WfTeam.Reviewer_UID = user_uid;
+                    model_Contract_WfTeam.WfTask_Role = "FuntionManager1";
+                    Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                }
+                if (!string.IsNullOrEmpty(old_team.FM2))
+                {
+                  
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    var user_uid = users.Where(m => m.User_NTID.ToLower() == old_team.FM2.Trim().ToLower()).FirstOrDefault().Users_UID;
+                    model_Contract_WfTeam.Reviewer_UID = user_uid;
+                    model_Contract_WfTeam.WfTask_Role = "FuntionManager2";
+                    Contract_WfTeam_List.Add(model_Contract_WfTeam);
+
+                }
+                if (!string.IsNullOrEmpty(old_team.PUR.ToString()))
+                {
+               
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.PUR.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.PUR.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "PurchasingManager";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+                if (!string.IsNullOrEmpty(old_team.SCM.ToString()))
+                {
+                
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.SCM.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.SCM.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "SupplyChainManager";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(old_team.FINANCE.ToString()))
+                {
+          
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.FINANCE.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.FINANCE.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "FinanceManager";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(old_team.FINANCE2.ToString()))
+                {
+   
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.FINANCE2.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "FinanceController";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+
+                if (!string.IsNullOrEmpty(old_team.LEGAL.ToString()))
+                {
+  
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.LEGAL.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "LegalGeneral1";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+
+                if (!string.IsNullOrEmpty(old_team.C1ST_LEGAL_CUSTOMER.ToString()))
+                {
+  
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.C1ST_LEGAL_CUSTOMER.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "LegalGeneral1";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(old_team.OPM.ToString()))
+                {
+          
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.OPM.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "OPManager";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(old_team.OPA.ToString()))
+                {
+          
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.OPA.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "OPAssisstant";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(old_team.DCC.ToString()))
+                {
+        
+                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Department_UID = model.Department_UID;
+                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                    model_Contract_WfTeam.Modified_UID = modified_guid;
+                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+
+                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var array = old_team.DCC.Split(new char[] { ',' }).ToList();
+                    model_Contract_WfTeam.WfTask_Role = "File_In_PIC";
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+                context.Contract_WfTeam.AddRange(Contract_WfTeam_List);
+                context.SaveChanges();
+
+                //if (!string.IsNullOrEmpty(old_team.PUR.ToString()))
+                //{
+                //    var array = old_team.PUR.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                //    for (int i = 0; i < array.Count; i++)
+                //    {
+                //        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                //        model.Reviewer_UID = user_uid;
+                //        context.Contract_WfTeam.Add(model_Contract_WfTeam);
+                //    }
+                //}
+
+
+            }
+           
+
+        }
+
         public static void Insert_Tb_Contract_WfTeam()
         {
 
@@ -1160,48 +1460,56 @@ a.SITE_CODE=b.NAME_0
 
                     item.Submit_UID = users.Where(m => m.User_NTID.ToLower() == item.SUBMIT.ToLower()).FirstOrDefault().Users_UID.ToString();
 
+
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                    model_Contract_WfTeam.Submitter_UID = new Guid(item.Submit_UID);
                     model_Contract_WfTeam.Department_UID = new Guid(item.Department_UID);
-                    model_Contract_WfTeam.Submit_UID = new Guid(item.Submit_UID);
-                    model_Contract_WfTeam.FuntionManager1_UIDs = ConvertToNtids(item.FM1, users);
-                    model_Contract_WfTeam.FuntionManager2_UIDs = ConvertToNtids(item.FM2, users);
-                    model_Contract_WfTeam.FunctionDirector_UIDs = string.Empty;
-                    model_Contract_WfTeam.FunctionVP_UIDs = String.Empty;
-                    model_Contract_WfTeam.BUManager_UIDs = String.Empty;
-                    model_Contract_WfTeam.BUDirector_UIDs = String.Empty;
-                    model_Contract_WfTeam.BUVP_UIDs = String.Empty;
-                    model_Contract_WfTeam.PurchasingManager_UIDs = ConvertToNtids(item.PUR, users);
-                    model_Contract_WfTeam.PurchasingDirector_UIDs = String.Empty;
-                    model_Contract_WfTeam.SupplyChainManager_UIDs = ConvertToNtids(item.SCM, users);
-                    model_Contract_WfTeam.SupplyChainDirector_UIDs = String.Empty;
-                    model_Contract_WfTeam.FinanceManager_UIDs = ConvertToNtids(item.FINANCE, users);
-                    model_Contract_WfTeam.FinanceController_UIDs = ConvertToNtids(item.FINANCE2, users);
-                    model_Contract_WfTeam.FinanceSeniorController_UIDs = String.Empty;
-                    model_Contract_WfTeam.LegalGeneral1_UIDs = String.Empty;
-                    model_Contract_WfTeam.LegalGeneral2_UIDs = String.Empty;
-                    model_Contract_WfTeam.LegalCustomer_ABC_UIDs = string.Empty;
-                    model_Contract_WfTeam.LegalCustomer_NDA_UIDs = ConvertToNtids(item.LEGAL_CUSTOMER_NDA, users);
-                    model_Contract_WfTeam.LegalCustomer1_UIDs = ConvertToNtids(item.C1ST_LEGAL_CUSTOMER, users);
-                    model_Contract_WfTeam.LegalCustomer2_UIDs = ConvertToNtids(item.C2ND_LEGAL_CUSTOMER, users);
-                    model_Contract_WfTeam.LegalService1_UIDs = ConvertToNtids(item.C1ST_LEGAL_SERVICE, users);
-                    model_Contract_WfTeam.LegalService2_UIDs = ConvertToNtids(item.C2ND_LEGAL_SERVICE, users);
-                    model_Contract_WfTeam.LegalUS1_UIDs = String.Empty;
-                    model_Contract_WfTeam.LegalUS2_UIDs = String.Empty;
-                    model_Contract_WfTeam.OPManager_UIDs = ConvertToNtids(item.OPM, users);
-                    model_Contract_WfTeam.OPDirector_UIDs = String.Empty;
-                    model_Contract_WfTeam.OPAssisstant_UIDs = ConvertToNtids(item.OPA, users);
-                    model_Contract_WfTeam.Upload_PIC_UIDs = String.Empty;
-                    model_Contract_WfTeam.Upload_PICFunctionManager_UIDs = String.Empty;
-                    model_Contract_WfTeam.File_In_PIC_UIDs = String.Empty;
-                    model_Contract_WfTeam.Is_Enable = true;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-                    contract_wf_team.Add(model_Contract_WfTeam);
+                    InsertRoleUsers(model_Contract_WfTeam,item, users);
+
+
+                    //model_Contract_WfTeam.Modified_UID = modified_guid;
+                    //model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                    //model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                    //contract_wf_team.Add(model_Contract_WfTeam);
+
+                    //model_Contract_WfTeam.Submit_UID = new Guid(item.Submit_UID);
+                    //model_Contract_WfTeam.FuntionManager1_UIDs = ConvertToNtids(item.FM1, users);
+                    //model_Contract_WfTeam.FuntionManager2_UIDs = ConvertToNtids(item.FM2, users);
+                    //model_Contract_WfTeam.FunctionDirector_UIDs = string.Empty;
+                    //model_Contract_WfTeam.FunctionVP_UIDs = String.Empty;
+                    //model_Contract_WfTeam.BUManager_UIDs = String.Empty;
+                    //model_Contract_WfTeam.BUDirector_UIDs = String.Empty;
+                    //model_Contract_WfTeam.BUVP_UIDs = String.Empty;
+                    //model_Contract_WfTeam.PurchasingManager_UIDs = ConvertToNtids(item.PUR, users);
+                    //model_Contract_WfTeam.PurchasingDirector_UIDs = String.Empty;
+                    //model_Contract_WfTeam.SupplyChainManager_UIDs = ConvertToNtids(item.SCM, users);
+                    //model_Contract_WfTeam.SupplyChainDirector_UIDs = String.Empty;
+                    //model_Contract_WfTeam.FinanceManager_UIDs = ConvertToNtids(item.FINANCE, users);
+                    //model_Contract_WfTeam.FinanceController_UIDs = ConvertToNtids(item.FINANCE2, users);
+                    //model_Contract_WfTeam.FinanceSeniorController_UIDs = String.Empty;
+                    //model_Contract_WfTeam.LegalGeneral1_UIDs = String.Empty;
+                    //model_Contract_WfTeam.LegalGeneral2_UIDs = String.Empty;
+                    //model_Contract_WfTeam.LegalCustomer_ABC_UIDs = string.Empty;
+                    //model_Contract_WfTeam.LegalCustomer_NDA_UIDs = ConvertToNtids(item.LEGAL_CUSTOMER_NDA, users);
+                    //model_Contract_WfTeam.LegalCustomer1_UIDs = ConvertToNtids(item.C1ST_LEGAL_CUSTOMER, users);
+                    //model_Contract_WfTeam.LegalCustomer2_UIDs = ConvertToNtids(item.C2ND_LEGAL_CUSTOMER, users);
+                    //model_Contract_WfTeam.LegalService1_UIDs = ConvertToNtids(item.C1ST_LEGAL_SERVICE, users);
+                    //model_Contract_WfTeam.LegalService2_UIDs = ConvertToNtids(item.C2ND_LEGAL_SERVICE, users);
+                    //model_Contract_WfTeam.LegalUS1_UIDs = String.Empty;
+                    //model_Contract_WfTeam.LegalUS2_UIDs = String.Empty;
+                    //model_Contract_WfTeam.OPManager_UIDs = ConvertToNtids(item.OPM, users);
+                    //model_Contract_WfTeam.OPDirector_UIDs = String.Empty;
+                    //model_Contract_WfTeam.OPAssisstant_UIDs = ConvertToNtids(item.OPA, users);
+                    //model_Contract_WfTeam.Upload_PIC_UIDs = String.Empty;
+                    //model_Contract_WfTeam.Upload_PICFunctionManager_UIDs = String.Empty;
+                    //model_Contract_WfTeam.File_In_PIC_UIDs = String.Empty;
+                    //model_Contract_WfTeam.Is_Enable = true;
+
                 }
-                context.Contract_WfTeam.AddRange(contract_wf_team);
-                context.SaveChanges();
+                //context.Contract_WfTeam.AddRange(contract_wf_team);
+                //context.SaveChanges();
 
             }
 
@@ -1516,15 +1824,75 @@ a.SITE_CODE=b.NAME_0
 
         }
 
-        public static void test()
-        {
-            WF_TASK wf_task = new WF_TASK();
 
-            SPP_Produciton_BaseRepository<WF_TASK> w = new SPP_Produciton_BaseRepository<WF_TASK>();
-            w.LoadEntities(m => m.OBJ_NO != null).FirstOrDefault();
+
+
+        #region 测试数据 -------------------Add By Hongzhong 2017/04
+
+
+        public static void test_Data()
+        {
+            //WF_TASK wf_task = new WF_TASK();
+
+            //SPP_Produciton_BaseRepository<WF_TASK> w = new SPP_Produciton_BaseRepository<WF_TASK>();
+            //w.LoadEntities(m => m.OBJ_NO != null).FirstOrDefault();
             //w.AddEntities();
 
+            var ntid = "huange3";
+            var role_id = "System_Admin";
+            Users users = new Users();
+            Role roles = new Role();
+
+
+            using (var context = new SPP_MVC_Entities())
+            {
+                users = context.Users.Where(m => m.User_NTID == ntid).FirstOrDefault();
+                roles = context.Role.Where(m => m.Role_ID == role_id).FirstOrDefault();
+
+                Users_Role model_Users_Role = new Users_Role();
+                model_Users_Role.Users_Role_UID = Guid.NewGuid();
+                model_Users_Role.Users_UID = users.Users_UID;
+                model_Users_Role.Role_UID = roles.Role_UID;
+                model_Users_Role.Modified_UID = modified_guid;
+                model_Users_Role.Modified_Date = DateTime.Now;
+                model_Users_Role.Modified_Remarks = String.Empty;
+                context.Users_Role.Add(model_Users_Role);
+
+                //更新ContractTempate 数据.
+                var sql = @"
+UPDATE ContractTemplate SET Company_UID=(SELECT TOP  1 Company_UID FROM dbo.Company WHERE Company_Code='0953')
+WHERE Company_UID=(SELECT  TOP 1 Company_UID FROM  ContractTemplate WHERE Company_UID=(SELECT TOP 1 Company_UID FROM dbo.Company WHERE Company_Code='0902')
+)
+
+";
+
+                context.Database.ExecuteSqlCommand(sql);
+
+                context.SaveChanges();
+
+            }
+
+
+
+
+
+
+
+
+
+
         }
+
+        public static void insert_huange3_role()
+        {
+
+
+
+        }
+
+
+        #endregion
+
 
 
     }
