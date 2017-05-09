@@ -15,6 +15,10 @@ namespace SPP.Migration
         static void Main(string[] args)
         {
 
+            //Insert_Tb_Contract_Attachment();
+   
+            //Insert_Tb_WfTask_History();
+
             #region Contract Applicant -------------------Add By Hongzhong 2017/04
             //Delete_ALL();
             //Insert_Tb_Users();
@@ -39,8 +43,10 @@ namespace SPP.Migration
             //test();
             #endregion
             //migration();
-            //test_Data();
-            Insert_Tb_Contract_WfTeam();
+            //Insert_Users_Role();
+            //Insert_Users_Role();
+            //test_DataWarranty_End_Date
+            //Insert_Tb_Contract_WfTeam();
 
         }
 
@@ -54,8 +60,11 @@ namespace SPP.Migration
             Insert_Tb_ContractType_D();
             Insert_Tb_ContractTemplate();
             Insert_TypeCode_Data();
-            Insert_Tb_Module();
+            //Insert_Tb_Module();
             Insert_Contract_M();
+
+            ////导入申请人权限
+            Insert_Users_Role();
             Insert_Tb_Contract_Attachment();
             Insert_Tb_Contract_WfTeam();
             Insert_Tb_WfTaskDelaySetting();
@@ -70,6 +79,7 @@ namespace SPP.Migration
         public static Guid modified_guid = new Guid("0B08C006-5AB5-E611-83F5-005056BF221C");
         public static string modify_remarks = "E-Contract 1.0 data migration to E-Contract 2.0";
         public static Guid module_uid = new Guid("39326F1E-54C6-4ED7-9D2D-A0415F8321D3");
+        //public static Guid approver_uid = new Guid("B426802E-1820-E711-A4CC-005056BF221B");
 
         //SELECT* FROM  dbo.Users
         //SELECT* FROM  dbo.Company
@@ -285,8 +295,39 @@ namespace SPP.Migration
             //";
 
 
+//            var sql = @"
+//SELECT t.*,y.COST_CENTER FROM  
+
+//(
+//SELECT DISTINCT SITE_NAME AS SITE_CODE ,DEPARTMENT AS DEPARTMENT,
+//			b.Company_Code,
+//'95BCBAB5-544C-465A-A6F1-4B9DBD'+ RIGHT('000000'+CAST(ROW_NUMBER()OVER( ORDER BY GETDATE() ) AS nvarchar(50)),6 )
+//AS Department_UID,
+//'' AS Company_UID 
+//			 FROM 
+//			(
+
+//		    SELECT DISTINCT SITE_NAME,DEPARTMENT FROM  dbo.SYSTEM_USER_DEPARTMENT
+//			UNION ALL
+//			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE
+
+//			)a 
+//			LEFT JOIN  
+//(
+//select distinct NAME_0 as SITE_CODE , CCODE  as Company_Code  from SYSTEM_PLANT, SYSTEM_USER_PLANT
+//where SYSTEM_PLANT.LOCATION = SYSTEM_USER_PLANT.PLANT_LOCATION
+//and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
+//) b ON  a.SITE_NAME=b.SITE_CODE GROUP BY  a.SITE_NAME,a.DEPARTMENT,b.Company_Code 
+//) t LEFT JOIN  
+//(SELECT DISTINCT SITE_CODE,DEPARTMENT ,COST_CENTER FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE WHERE Cost_center IS NOT NULL )y 
+//ON  t.SITE_CODE=y.SITE_CODE  AND t.DEPARTMENT=y.DEPARTMENT
+
+
+
+//";
+
             var sql = @"
-	SELECT DISTINCT SITE_NAME AS SITE_CODE ,DEPARTMENT AS DEPARTMENT,
+                     SELECT DISTINCT SITE_NAME AS SITE_CODE ,DEPARTMENT AS DEPARTMENT,
 			b.Company_Code,
 '95BCBAB5-544C-465A-A6F1-4B9DBD'+ RIGHT('000000'+CAST(ROW_NUMBER()OVER( ORDER BY GETDATE() ) AS nvarchar(50)),6 )
 AS Department_UID,
@@ -304,9 +345,8 @@ AS Department_UID,
 select distinct NAME_0 as SITE_CODE , CCODE  as Company_Code  from SYSTEM_PLANT, SYSTEM_USER_PLANT
 where SYSTEM_PLANT.LOCATION = SYSTEM_USER_PLANT.PLANT_LOCATION
 and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
-) b ON  a.SITE_NAME=b.SITE_CODE GROUP BY  a.SITE_NAME,a.DEPARTMENT,b.Company_Code    ORDER BY  a.SITE_NAME,DEPARTMENT
+) b ON  a.SITE_NAME=b.SITE_CODE GROUP BY  a.SITE_NAME,a.DEPARTMENT,b.Company_Code        
 ";
-
 
             List<Insert_Tb_DepartMent_1> insert_tb_department_1_list = new List<Insert_Tb_DepartMent_1>();
 
@@ -337,6 +377,10 @@ and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
                     model_Department.Department_UID = new Guid(item.Department_UID);
                     model_Department.Company_UID = new Guid(item.Company_UID);
                     model_Department.SAP_CostCenter = String.Empty;
+                    if (!string.IsNullOrEmpty(item.COST_CENTER))
+                    {
+                        model_Department.SAP_CostCenter = item.COST_CENTER;
+                    }
                     model_Department.Department_Name = item.DEPARTMENT;
                     model_Department.Is_Enable = true;
                     model_Department.Modified_UID = modified_guid;
@@ -843,7 +887,8 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     '' AS ContractType_D_UID,
                     '' AS Is_Renew_UID,
                     '' AS JabilEntity_UID,
-                    c.NT_ACCOUNT AS Modify_NTID
+                    c.NT_ACCOUNT AS Modify_NTID,
+                       c.MODIFY_DATETIME AS MODIFY_DATETIME
           FROM     dbo.CONTRACT_M a
            LEFT JOIN (SELECT DISTINCT
                                 NAME_0 AS SITE_CODE,
@@ -925,7 +970,7 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
 
                     Contract_M model_Contract_M = new Contract_M();
                     model_Contract_M.Contract_M_UID = new Guid(item.CONTRACT_M_UID);
-                    model_Contract_M.Contract_No = item.CONTRACT_NO;
+                    model_Contract_M.Contract_No = item.CONTRACT_NO.Trim();
                     model_Contract_M.Applicant_UID = new Guid(item.Applicant_UID);
                     model_Contract_M.JabilEntity_UID = new Guid(item.JabilEntity_UID);
                     model_Contract_M.Department_UID = new Guid(item.Department_UID);
@@ -966,14 +1011,14 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     model_Contract_M.Amount_Involve_perYear_USD = null;
                     model_Contract_M.Exchange_Rate_toUSD = null;
                     model_Contract_M.Payment_Schedule = null;
-                    model_Contract_M.Begin_Date = null;
-                    model_Contract_M.End_Date = null;
+                    model_Contract_M.Begin_Date = item.PERIOD_FROM;
+                    model_Contract_M.End_Date = item.PERIOD_TO;
                     model_Contract_M.Expiration_Notice_Date = item.EXPIRATION_NOTICE_DATE;
                     model_Contract_M.Delivery_Date = item.DELIVERY_DATE;
                     model_Contract_M.Project_Commencement_Date = item.PRO_COMPLETION_DATE;
                     model_Contract_M.Project_Completion_Date = item.PRO_COMPLETION_DATE;
-                    model_Contract_M.Warranty_Begin_Date = item.WARRANTY_PERIOD;
-                    model_Contract_M.Warranty_End_Date = DateTime.Now;
+                    model_Contract_M.Warranty_Begin_Date =null ;
+                    model_Contract_M.Warranty_End_Date = item.WARRANTY_PERIOD;
                     model_Contract_M.Estimate_Effective_Date = item.ESTIMATE_EFFECTIVE_DATE;
                     model_Contract_M.Is_MultipleContractorMaster = null;
                     model_Contract_M.Status = item.STATUS;
@@ -992,7 +1037,7 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     //}
 
 
-                    model_Contract_M.Modified_Date = DateTime.Now;
+                    model_Contract_M.Modified_Date = item.MODIFY_DATETIME;
                     model_Contract_M.Modified_Remarks = modify_remarks;
                     model_Contract_M.CPT_No = String.Empty;
                     model_Contract_M.SRM_No = String.Empty;
@@ -1012,6 +1057,126 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                 context.SaveChanges();
             }
 
+
+
+        }
+
+        public static void Insert_Users_Role()
+        {
+
+            using (var context = new SPP_MVC_Entities())
+            {
+                var sql_creator = @"
+                        INSERT Users_Role
+                        SELECT NEWID(),t.* FROM 
+                        (
+                        SELECT DISTINCT 
+                        Applicant_UID ,
+                        (SELECT  TOP 1 Role_UID FROM  ROLE WHERE Role_ID='Contract_Creator') AS Users_UID,
+                        '0B08C006-5AB5-E611-83F5-005056BF221C' AS  Modified_UID,
+                        GETDATE() AS Modified_Date, 
+                        'E-Contract 1.0 data migration to E-Contract 2.0' AS Modified_Remarks
+                         FROM Contract_M WHERE Is_latest=1
+                        AND Applicant_UID NOT IN 
+                        (
+                        SELECT DISTINCT Users_UID FROM Users_Role WHERE Role_UID =
+                        (SELECT  TOP 1 Role_UID FROM  ROLE WHERE Role_ID='Contract_Creator'))
+                        )t
+                        ";
+
+
+
+
+                context.Database.ExecuteSqlCommand(sql_creator);
+                context.SaveChanges();
+            }
+
+            List<string> reivewer_ntid = new List<string>();
+            using (var context = new SPP_ProductionEntities())
+            {
+                string sql = string.Format(@"
+                SELECT DISTINCT LOWER(RTRIM(b.ACCOUNT)) AS account FROM dbo.SYSTEM_USERS_ROLE a INNER JOIN dbo.SYSTEM_USERS b
+                ON a.ACCOUNT_UID=b.ACCOUNT_UID
+                WHERE ROLE='CONTRACT_REVIEWER'
+              ");
+                reivewer_ntid = context.Database.SqlQuery<string>(sql).ToList<string>();
+            }
+
+            List<string> reviewer_exists = new List<string>();
+
+            List<string> except_lists = new List<string>();
+            using (var context = new SPP_MVC_Entities())
+            {
+                string sql = string.Format(@"SELECT LOWER(b.User_NTID) FROM dbo.Users_Role a INNER JOIN  dbo.Users b
+ON a.Users_UID=b.Users_UID AND a.Role_UID=(SELECT Role_UID FROM dbo.Role WHERE Role_ID='Contract_Approver')
+");
+                reviewer_exists = context.Database.SqlQuery<string>(sql).ToList<string>();
+
+                except_lists = reivewer_ntid.Except(reviewer_exists).ToList<string>();
+
+                var users = context.Users.ToList();
+
+                var approver_uid = context.Role.ToList().Where(m => m.Role_ID == "Contract_Approver").FirstOrDefault().Role_UID;
+
+                List<Users_Role> user_roles = new List<Users_Role>();
+                for (int i = 0; i < except_lists.Count; i++)
+                {
+                    Users_Role model_Users_Role = new Users_Role();
+                    model_Users_Role.Users_Role_UID = Guid.NewGuid();
+                    model_Users_Role.Users_UID = users.Where(m=>m.User_NTID.ToLower() == except_lists[i].ToLower().ToString().Trim ()).FirstOrDefault().Users_UID;
+                    model_Users_Role.Role_UID = approver_uid;//
+                    model_Users_Role.Modified_UID = modified_guid;
+                    model_Users_Role.Modified_Date = DateTime.Now;
+                    model_Users_Role.Modified_Remarks = modify_remarks;
+                    user_roles.Add(model_Users_Role);
+
+                }
+                context.Users_Role.AddRange(user_roles);
+                context.SaveChanges();
+            }
+
+
+            //User View 角色导入
+            List<string> viewer_id = new List<string>();
+            using (var context = new SPP_ProductionEntities())
+            {
+                string sql = string.Format(@"
+                SELECT DISTINCT LOWER(RTRIM(b.ACCOUNT)) AS account FROM dbo.SYSTEM_USERS_ROLE a INNER JOIN dbo.SYSTEM_USERS b
+                ON a.ACCOUNT_UID=b.ACCOUNT_UID
+                WHERE ROLE='CONTRACT_VIEWER'
+              ");
+                viewer_id = context.Database.SqlQuery<string>(sql).ToList<string>();
+            }
+            List<string> viewer_exists = new List<string>();
+            List<string> except_viewer_lists = new List<string>();
+            using (var context = new SPP_MVC_Entities())
+            {
+                string sql = string.Format(@"SELECT LOWER(b.User_NTID) FROM dbo.Users_Role a INNER JOIN  dbo.Users b
+ON a.Users_UID=b.Users_UID AND a.Role_UID=(SELECT Role_UID FROM dbo.Role WHERE Role_ID='Contract_Viewer')
+");
+                viewer_exists = context.Database.SqlQuery<string>(sql).ToList<string>();
+
+                except_viewer_lists = viewer_id.Except(viewer_exists).ToList<string>();
+
+                var users = context.Users.ToList();
+
+                var viewer_uid = context.Role.Where(m => m.Role_ID == "Contract_Viewer").FirstOrDefault().Role_UID;
+
+                List<Users_Role> user_roles = new List<Users_Role>();
+                for (int i = 0; i < except_viewer_lists.Count; i++)
+                {
+                    Users_Role model_Users_Role = new Users_Role();
+                    model_Users_Role.Users_Role_UID = Guid.NewGuid();
+                    model_Users_Role.Users_UID = users.Where(m => m.User_NTID.ToLower() == except_viewer_lists[i].ToLower().ToString().Trim()).FirstOrDefault().Users_UID;
+                    model_Users_Role.Role_UID = viewer_uid;//
+                    model_Users_Role.Modified_UID = modified_guid;
+                    model_Users_Role.Modified_Date = DateTime.Now;
+                    model_Users_Role.Modified_Remarks = modify_remarks;
+                    user_roles.Add(model_Users_Role);
+                }
+                context.Users_Role.AddRange(user_roles);
+                context.SaveChanges();
+            }
 
 
         }
@@ -1136,7 +1301,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                     model_Contract_Attachment.File_Path = @"FileVault/" + newFileName;
 
                     attachment_list.Add(model_Contract_Attachment);
-
+                  
                 }
 
                 context.Contract_Attachment.AddRange(attachment_list);
@@ -1170,7 +1335,6 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
             return re;
         }
 
-
         private static void InsertRoleUsers(Contract_WfTeam model, Insert_Tb_Contract_WfTeam_1 old_team, List<Users> users)
         {
             using (var context = new SPP_MVC_Entities())
@@ -1178,7 +1342,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 List<Contract_WfTeam> Contract_WfTeam_List = new List<Contract_WfTeam>();
                 if (!string.IsNullOrEmpty(old_team.FM1))
                 {
-                  
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1194,7 +1358,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 }
                 if (!string.IsNullOrEmpty(old_team.FM2))
                 {
-                  
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1211,7 +1375,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 }
                 if (!string.IsNullOrEmpty(old_team.PUR.ToString()))
                 {
-               
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1232,7 +1396,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 }
                 if (!string.IsNullOrEmpty(old_team.SCM.ToString()))
                 {
-                
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1254,7 +1418,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.FINANCE.ToString()))
                 {
-          
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1276,7 +1440,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.FINANCE2.ToString()))
                 {
-   
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1299,7 +1463,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.LEGAL.ToString()))
                 {
-  
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1322,7 +1486,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.C1ST_LEGAL_CUSTOMER.ToString()))
                 {
-  
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1344,7 +1508,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.OPM.ToString()))
                 {
-          
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1366,7 +1530,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.OPA.ToString()))
                 {
-          
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1388,7 +1552,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.DCC.ToString()))
                 {
-        
+
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Department_UID = model.Department_UID;
@@ -1424,7 +1588,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
 
             }
-           
+
 
         }
 
@@ -1466,7 +1630,7 @@ a.SITE_CODE=b.NAME_0
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Submitter_UID = new Guid(item.Submit_UID);
                     model_Contract_WfTeam.Department_UID = new Guid(item.Department_UID);
-                    InsertRoleUsers(model_Contract_WfTeam,item, users);
+                    InsertRoleUsers(model_Contract_WfTeam, item, users);
 
 
                     //model_Contract_WfTeam.Modified_UID = modified_guid;
@@ -1525,7 +1689,7 @@ a.SITE_CODE=b.NAME_0
             List<Users> users = new List<Users>();
             using (var context = new SPP_MVC_Entities())
             {
-                contract_M_no = context.Contract_M.Select(m => m.Contract_No.ToString().ToLower()).Distinct().ToList<string>();
+                contract_M_no = context.Contract_M.Select(m => m.Contract_No.ToString().ToLower().Trim()).Distinct().ToList<string>();
                 users = context.Users.ToList();
 
             }
@@ -1538,7 +1702,7 @@ a.SITE_CODE=b.NAME_0
                 //wf_old_task = context.WF_TASK.Where(m => contract_M_uid_str.Contains(m.UID.ToLower()) && string.IsNullOrEmpty(m.STATE)).ToList();
 
                 wf_old_task = context.WF_TASK.Where(m => m.STATE == null).ToList();
-                wf_old_task = wf_old_task.Where(m => contract_M_no.Contains(m.OBJ_NO.ToLower())).ToList();
+                wf_old_task = wf_old_task.Where(m => contract_M_no.Contains(m.OBJ_NO.ToLower().Trim())).ToList();
                 //wf_old_task = context.WF_TASK.ToList().Where(m => contract_M_uid_str.Contains(new Guid(m.UID)) & m.STATE != null).ToList();
 
             }
@@ -1554,7 +1718,7 @@ a.SITE_CODE=b.NAME_0
                     WfTask model_WfTask_History = new WfTask();
                     model_WfTask_History.WfTask_UID = new Guid(item.UID);
                     model_WfTask_History.Module_UID = module_uid;
-                    model_WfTask_History.Obj_No = item.OBJ_NO;
+                    model_WfTask_History.Obj_No = item.OBJ_NO.Trim();
                     model_WfTask_History.Task_Name = item.TASK;
                     model_WfTask_History.Task_Role = item.ROLE;
                     model_WfTask_History.Task_Owner = users.Where(m => m.User_NTID.ToLower() == item.OWNER.Trim().ToLower()).FirstOrDefault().Users_UID;
@@ -1587,7 +1751,7 @@ a.SITE_CODE=b.NAME_0
             List<Users> users = new List<Users>();
             using (var context = new SPP_MVC_Entities())
             {
-                contract_M_no = context.Contract_M.Select(m => m.Contract_No.ToString().ToLower()).Distinct().ToList<string>();
+                contract_M_no = context.Contract_M.Select(m => m.Contract_No.ToString().ToLower().TrimEnd().TrimStart()).Distinct().ToList<string>();
                 users = context.Users.ToList();
 
             }
@@ -1597,9 +1761,35 @@ a.SITE_CODE=b.NAME_0
             {
 
                 //context.Database.CommandTimeout = 3600 * 2;
-                wf_old_task = context.WF_TASK.Where(m => !string.IsNullOrEmpty(m.STATE)).ToList();
+                //wf_old_task = context.WF_TASK.Where(m => !string.IsNullOrEmpty(m.STATE)).ToList();
+                //var sql = @"SELECT * FROM dbo.WF_TASK WHERE  STATE IS NOT NULL AND  COMPLETE_DATETIME IS NOT NULL AND  ASSIGN_DATETIME IS NOT NULL  ";
+
+                var sql = @"
+                            SELECT [UID]
+                                  ,LTRIM(RTRIM([OBJ_NO])) AS [OBJ_NO]
+                                  ,[TASK]
+                                  ,[ROLE]
+                                  ,[OWNER]
+                                  ,[STATE]
+                                  ,[COMMENTS]
+                                  ,[ASSIGN_DATETIME]
+                                  ,[COMPLETE_DATETIME]
+                                  ,[REVIEW_LOOP]
+                                  ,[REMARK]
+                                  ,[DELEGATE_FROM]
+                                  ,[Send_Mail_Date]
+                              FROM [dbo].[WF_TASK]  
+                            WHERE  STATE IS NOT NULL AND  COMPLETE_DATETIME IS NOT NULL AND  ASSIGN_DATETIME IS NOT NULL  
+                                           ";
+
+                wf_old_task = context.Database.SqlQuery<WF_TASK>(sql).ToList();
+                //wf_old_task = context.Database.SqlQuery<WF_TASK>(sql).Where(m=>m.OBJ_NO== "09021608007").ToList();
+
                 //wf_old_task = context.WF_TASK.Where(m => contract_M_no.Contains(m.OBJ_NO.ToLower())).ToList();
                 //wf_old_task = context.WF_TASK.ToList().Where(m => contract_M_uid_str.Contains(new .uid(m.UID)) & m.STATE != null).ToList();
+
+
+          
 
             }
 
@@ -1618,14 +1808,14 @@ a.SITE_CODE=b.NAME_0
                             WfTask_History model_WfTask_History = new WfTask_History();
                             model_WfTask_History.WfTask_History_UID = new Guid(item.UID);
                             model_WfTask_History.Module_UID = module_uid;
-                            model_WfTask_History.Obj_No = item.OBJ_NO;
+                            model_WfTask_History.Obj_No = item.OBJ_NO.Trim();
                             model_WfTask_History.Task_Name = item.TASK;
                             model_WfTask_History.Task_Role = item.ROLE;
                             model_WfTask_History.Task_Owner = users.Where(m => m.User_NTID.ToLower().Trim() == item.OWNER.ToLower().Trim()).FirstOrDefault().Users_UID;
                             model_WfTask_History.State = item.STATE;
-                            if (!string.IsNullOrEmpty(model_WfTask_History.Comments))
+                            if (!string.IsNullOrEmpty(item.COMMENTS))
                             {
-                                if (model_WfTask_History.Comments.Length < 500)
+                                if (item.COMMENTS.Length < 500)
                                 {
                                     model_WfTask_History.Comments = item.COMMENTS;
                                 }
@@ -1824,9 +2014,6 @@ a.SITE_CODE=b.NAME_0
 
         }
 
-
-
-
         #region 测试数据 -------------------Add By Hongzhong 2017/04
 
 
@@ -1839,24 +2026,35 @@ a.SITE_CODE=b.NAME_0
             //w.AddEntities();
 
             var ntid = "huange3";
-            var role_id = "System_Admin";
+            var role_id = "System_Admin,Contract_Creator";
             Users users = new Users();
-            Role roles = new Role();
+            List<Role> roles = new List<Role>();
+
+
+
+
 
 
             using (var context = new SPP_MVC_Entities())
             {
                 users = context.Users.Where(m => m.User_NTID == ntid).FirstOrDefault();
-                roles = context.Role.Where(m => m.Role_ID == role_id).FirstOrDefault();
+                //roles = context.Role.Where(m => m.Role_ID == role_id).FirstOrDefault();
+                roles = context.Role.ToList();
+                var list = role_id.Split(',').ToList<string>();
+                for (int i = 0; i < list.Count; i++)
+                {
+                    Users_Role model_Users_Role = new Users_Role();
+                    model_Users_Role.Users_Role_UID = Guid.NewGuid();
+                    model_Users_Role.Users_UID = users.Users_UID;
+                    model_Users_Role.Role_UID = roles.Where(m => m.Role_ID == list[i].ToString()).FirstOrDefault().Role_UID;
+                    model_Users_Role.Modified_UID = modified_guid;
+                    model_Users_Role.Modified_Date = DateTime.Now;
+                    model_Users_Role.Modified_Remarks = String.Empty;
+                    context.Users_Role.Add(model_Users_Role);
 
-                Users_Role model_Users_Role = new Users_Role();
-                model_Users_Role.Users_Role_UID = Guid.NewGuid();
-                model_Users_Role.Users_UID = users.Users_UID;
-                model_Users_Role.Role_UID = roles.Role_UID;
-                model_Users_Role.Modified_UID = modified_guid;
-                model_Users_Role.Modified_Date = DateTime.Now;
-                model_Users_Role.Modified_Remarks = String.Empty;
-                context.Users_Role.Add(model_Users_Role);
+                }
+
+
 
                 //更新ContractTempate 数据.
                 var sql = @"
