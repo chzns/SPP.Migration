@@ -8,8 +8,45 @@ using System.Text;
 using System.Threading.Tasks;
 
 
+
+
+
+
 namespace SPP.Migration
 {
+    public static class ContractConsts
+    {
+        public struct RoleName
+        {
+            public const string Applicant = "Applicant";
+            public const string Function_Manager_I = "Function Manager I";
+            public const string Function_Manager_II = "Function Manager II";
+            public const string Purchasing_I = "Purchasing I";
+            public const string Purchasing_II = "Purchasing II";
+            public const string SCM_I = "SCM I";
+            public const string SCM_II = "SCM II";
+            public const string Finance_I = "Finance I";
+            public const string Finance_II = "Finance II";
+            public const string Legal_Approver_I = "Legal Approver I";
+            public const string Legal_Approver_II = "Legal Approver II";
+            public const string Legal_Customer_I = "Legal Customer I";
+            public const string Legal_Customer_II = "Legal Customer II";
+            public const string Legal_Service_I = "Legal Service I";
+            public const string Legal_Service_II = "Legal Service II";
+            public const string Legal_Customer_ABC = "Legal Customer ABC";
+            public const string Legal_Customer_NDA = "Legal Customer NDA";
+            public const string OPM = "OPM";
+            public const string OPD = "OPD";
+            public const string OP_Assistant = "OP Assistant";
+            public const string Upload_PIC = "Upload PIC";
+            public const string Upload_PIC_FM = "Upload PIC FM";
+            public const string File_In_PIC = "File In PIC";
+
+        }
+
+
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -46,7 +83,7 @@ namespace SPP.Migration
             //Insert_Users_Role();
             //Insert_Users_Role();
             //test_DataWarranty_End_Date
-            //Insert_Tb_Contract_WfTeam();
+            Insert_Tb_Contract_WfTeam();
 
         }
 
@@ -79,6 +116,8 @@ namespace SPP.Migration
         public static Guid modified_guid = new Guid("0B08C006-5AB5-E611-83F5-005056BF221C");
         public static string modify_remarks = "E-Contract 1.0 data migration to E-Contract 2.0";
         public static Guid module_uid = new Guid("39326F1E-54C6-4ED7-9D2D-A0415F8321D3");
+        
+
         //public static Guid approver_uid = new Guid("B426802E-1820-E711-A4CC-005056BF221B");
 
         //SELECT* FROM  dbo.Users
@@ -1335,11 +1374,13 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
             return re;
         }
 
-        private static void InsertRoleUsers(Contract_WfTeam model, Insert_Tb_Contract_WfTeam_1 old_team, List<Users> users)
+        private static List<Contract_WfTeam> InsertRoleUsers(Contract_WfTeam model, Insert_Tb_Contract_WfTeam_1 old_team, List<Users> users)
         {
             using (var context = new SPP_MVC_Entities())
             {
                 List<Contract_WfTeam> Contract_WfTeam_List = new List<Contract_WfTeam>();
+
+                #region Function Manager-------------------Add By Hongzhong 2017/05
                 if (!string.IsNullOrEmpty(old_team.FM1))
                 {
 
@@ -1353,7 +1394,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                     var user_uid = users.Where(m => m.User_NTID.ToLower() == old_team.FM1.Trim().ToLower()).FirstOrDefault().Users_UID;
                     model_Contract_WfTeam.Reviewer_UID = user_uid;
-                    model_Contract_WfTeam.WfTask_Role = "FuntionManager1";
+                    model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Function_Manager_I;
                     Contract_WfTeam_List.Add(model_Contract_WfTeam);
                 }
                 if (!string.IsNullOrEmpty(old_team.FM2))
@@ -1369,69 +1410,83 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                     var user_uid = users.Where(m => m.User_NTID.ToLower() == old_team.FM2.Trim().ToLower()).FirstOrDefault().Users_UID;
                     model_Contract_WfTeam.Reviewer_UID = user_uid;
-                    model_Contract_WfTeam.WfTask_Role = "FuntionManager2";
+                    model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Function_Manager_II;
                     Contract_WfTeam_List.Add(model_Contract_WfTeam);
 
                 }
+                #endregion
+
+                #region Purchasing -------------------Add By Hongzhong 2017/05
                 if (!string.IsNullOrEmpty(old_team.PUR.ToString()))
                 {
 
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
-                    //var array = old_team.PUR.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.PUR.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "PurchasingManager";
+                    var array = old_team.PUR.Split(new char[] { ',' }).Distinct().ToList<string>();
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        if (i > 0)
+                        {
+                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Purchasing_II;
+                        }
+                        else
+                        {
+                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Purchasing_I;
+                        }
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
                     }
                 }
+                #endregion
+
+                #region SCM -------------------Add By Hongzhong 2017/05
                 if (!string.IsNullOrEmpty(old_team.SCM.ToString()))
                 {
-
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
-                    //var array = old_team.SCM.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.SCM.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "SupplyChainManager";
+                    var array = old_team.SCM.Split(new char[] { ',' }).Distinct().ToList<string>();
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        if (i > 0)
+                        {
+                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.SCM_II;
+                        }
+                        else
+                        {
+                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.SCM_I;
+                        }
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
                     }
                 }
+                #endregion
 
+                #region Finance -------------------Add By Hongzhong 2017/05
                 if (!string.IsNullOrEmpty(old_team.FINANCE.ToString()))
                 {
-
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
-                    //var array = old_team.FINANCE.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.FINANCE.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "FinanceManager";
+                    var array = old_team.FINANCE.Split(new char[] { ',' }).Distinct().ToList<string>();
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Finance_I;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
@@ -1441,42 +1496,40 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 if (!string.IsNullOrEmpty(old_team.FINANCE2.ToString()))
                 {
 
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
-                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.FINANCE2.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "FinanceController";
+                    var array = old_team.FINANCE2.Split(new char[] { ',' }).Distinct().ToList<string>();
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Finance_II;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
                     }
                 }
+                #endregion
 
-
+                #region Legal -------------------Add By Hongzhong 2017/05
                 if (!string.IsNullOrEmpty(old_team.LEGAL.ToString()))
                 {
-
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
                     //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.LEGAL.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "LegalGeneral1";
+                    var array = old_team.LEGAL.Split(new char[] { ',' }).Distinct().ToList<string>();
+              
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Legal_Approver_I;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
@@ -1487,106 +1540,231 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 if (!string.IsNullOrEmpty(old_team.C1ST_LEGAL_CUSTOMER.ToString()))
                 {
 
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
                     //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.C1ST_LEGAL_CUSTOMER.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "LegalGeneral1";
+                    var array = old_team.C1ST_LEGAL_CUSTOMER.Split(new char[] { ',' }).Distinct().ToList<string>();
+
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Legal_Customer_I;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
                     }
                 }
 
+                if (!string.IsNullOrEmpty(old_team.C2ND_LEGAL_CUSTOMER.ToString()))
+                {
+
+                    var array = old_team.C2ND_LEGAL_CUSTOMER.Split(new char[] { ',' }).Distinct().ToList<string>();
+
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Legal_Customer_II;
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(old_team.C1ST_LEGAL_SERVICE.ToString()))
+                {
+                  
+                    var array = old_team.C1ST_LEGAL_SERVICE.Split(new char[] { ',' }).Distinct().ToList<string>();
+
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Legal_Service_I;
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(old_team.C2ND_LEGAL_SERVICE.ToString()))
+                {
+                    
+                    var array = old_team.C2ND_LEGAL_SERVICE.Split(new char[] { ',' }).Distinct().ToList<string>();
+
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Legal_Service_II;
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+
+                if (!string.IsNullOrEmpty(old_team.LEGAL_CUSTOMER_NDA.ToString()))
+                {
+                    
+                    var array = old_team.LEGAL_CUSTOMER_NDA.Split(new char[] { ',' }).Distinct().ToList<string>();
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Legal_Customer_NDA;
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+
+                //Legal_Customer_ABC
+                if (!string.IsNullOrEmpty(old_team.C2ND_LEGAL_CUSTOMER.ToString()))
+                {
+                    
+                    var array = old_team.C2ND_LEGAL_CUSTOMER.Split(new char[] { ',' }).Distinct().ToList<string>();
+
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Legal_Customer_ABC;
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+
+
+                #endregion
+
+                #region OPM -------------------Add By Hongzhong 2017/05
                 if (!string.IsNullOrEmpty(old_team.OPM.ToString()))
                 {
-
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
-                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.OPM.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "OPManager";
+                    var array = old_team.OPM.Split(new char[] { ',' }).Distinct().ToList<string>();
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        if (i > 0)
+                        {
+                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.OPD;
+                        }
+                        else
+                        {
+                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.OPM;
+
+                        }
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
                     }
                 }
+                #endregion
 
+                #region OPA-------------------Add By Hongzhong 2017/05
                 if (!string.IsNullOrEmpty(old_team.OPA.ToString()))
                 {
-
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
-                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.OPA.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "OPAssisstant";
+                    var array = old_team.OPA.Split(new char[] { ',' }).Distinct().ToList<string>();
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.OP_Assistant;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
                     }
                 }
+                #endregion
+
+                #region DCC -------------------Add By Hongzhong 2017/05
 
                 if (!string.IsNullOrEmpty(old_team.DCC.ToString()))
                 {
-
-                    Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
-                    model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
-                    model_Contract_WfTeam.Department_UID = model.Department_UID;
-                    model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
-                    model_Contract_WfTeam.Modified_UID = modified_guid;
-                    model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-
-                    //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    var array = old_team.DCC.Split(new char[] { ',' }).ToList();
-                    model_Contract_WfTeam.WfTask_Role = "File_In_PIC";
+                    var array = old_team.DCC.Split(new char[] { ',' }).Distinct().ToList<string>();
                     for (int i = 0; i < array.Count; i++)
                     {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.File_In_PIC;
+                        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_Contract_WfTeam.Reviewer_UID = user_uid;
+                        Contract_WfTeam_List.Add(model_Contract_WfTeam);
+                    }
+                }
+                #endregion
+
+                #region Upload User -------------------Add By Hongzhong 2017/05
+                var uploaderUser = old_team.SUBMIT + "," + old_team.OPA + "," + old_team.DCC;
+                {
+                    var array = uploaderUser.Split(new char[] { ',' }).Distinct().ToList<string>();
+                    for (int i = 0; i < array.Count; i++)
+                    {
+                        Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
+                        model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
+                        model_Contract_WfTeam.Department_UID = model.Department_UID;
+                        model_Contract_WfTeam.Submitter_UID = model.Submitter_UID;
+                        model_Contract_WfTeam.Modified_UID = modified_guid;
+                        model_Contract_WfTeam.Modified_Date = DateTime.Now;
+                        model_Contract_WfTeam.Modified_Remarks = modify_remarks;
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Upload_PIC;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
                     }
                 }
 
-                context.Contract_WfTeam.AddRange(Contract_WfTeam_List);
-                context.SaveChanges();
 
-                //if (!string.IsNullOrEmpty(old_team.PUR.ToString()))
-                //{
-                //    var array = old_team.PUR.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                //    for (int i = 0; i < array.Count; i++)
-                //    {
-                //        var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
-                //        model.Reviewer_UID = user_uid;
-                //        context.Contract_WfTeam.Add(model_Contract_WfTeam);
-                //    }
-                //}
+                #endregion
 
-
+                return Contract_WfTeam_List;
             }
 
 
@@ -1599,23 +1777,21 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
             using (var context = new SPP_ProductionEntities())
             {
                 var sql = @"
-SELECT b.CCODE,'' AS Contract_WfTeam_UID,'' AS Department_UID ,'' AS Submit_UID, [SITE_CODE], [DEPARTMENT], [SUBMIT], [FM1], [FM2], [FINANCE], [LEGAL], [FINANCE2], [PUR], [OPM], [OPA], [SCM], [DCC], [1ST_LEGAL_CUSTOMER] AS C1ST_LEGAL_CUSTOMER, [2ND_LEGAL_CUSTOMER] AS C2ND_LEGAL_CUSTOMER, [1ST_LEGAL_SERVICE] AS C1ST_LEGAL_SERVICE, [2ND_LEGAL_SERVICE] AS C2ND_LEGAL_SERVICE, [LEGAL_CUSTOMER_NDA], [COST_CENTER]  FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE a
-LEFT JOIN dbo.SYSTEM_PLANT b ON
-a.SITE_CODE=b.NAME_0 
-";
+                           SELECT b.CCODE,'' AS Contract_WfTeam_UID,'' AS Department_UID ,'' AS Submit_UID, [SITE_CODE], [DEPARTMENT], [SUBMIT], [FM1], [FM2], [FINANCE], [LEGAL], [FINANCE2], [PUR], [OPM], [OPA], [SCM], [DCC], [1ST_LEGAL_CUSTOMER] AS C1ST_LEGAL_CUSTOMER, [2ND_LEGAL_CUSTOMER] AS C2ND_LEGAL_CUSTOMER, [1ST_LEGAL_SERVICE] AS C1ST_LEGAL_SERVICE, [2ND_LEGAL_SERVICE] AS C2ND_LEGAL_SERVICE, [LEGAL_CUSTOMER_NDA], [COST_CENTER]  FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE a
+                           LEFT JOIN dbo.SYSTEM_PLANT b ON
+                           a.SITE_CODE=b.NAME_0 
+                           ";
                 wf_review_teams = context.Database.SqlQuery<Insert_Tb_Contract_WfTeam_1>(sql).ToList();
             }
             List<Users> users = new List<Users>();
             List<Department> department = new List<Department>();
             List<Company> company = new List<Company>();
-            List<Contract_WfTeam> contract_wf_team = new List<Contract_WfTeam>();
+            List<Contract_WfTeam> list = new List<Contract_WfTeam>();
             using (var context = new SPP_MVC_Entities())
             {
                 users = context.Users.ToList();
                 department = context.Department.ToList();
                 company = context.Company.ToList();
-
-
                 foreach (var item in wf_review_teams)
                 {
                     var company_uid = company.Where(m => m.Company_Code == item.CCODE).FirstOrDefault().Company_UID;
@@ -1624,65 +1800,28 @@ a.SITE_CODE=b.NAME_0
 
                     item.Submit_UID = users.Where(m => m.User_NTID.ToLower() == item.SUBMIT.ToLower()).FirstOrDefault().Users_UID.ToString();
 
-
-
                     Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
                     model_Contract_WfTeam.Contract_WfTeam_UID = Guid.NewGuid();
                     model_Contract_WfTeam.Submitter_UID = new Guid(item.Submit_UID);
                     model_Contract_WfTeam.Department_UID = new Guid(item.Department_UID);
-                    InsertRoleUsers(model_Contract_WfTeam, item, users);
-
-
-                    //model_Contract_WfTeam.Modified_UID = modified_guid;
-                    //model_Contract_WfTeam.Modified_Date = DateTime.Now;
-                    //model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-                    //contract_wf_team.Add(model_Contract_WfTeam);
-
-                    //model_Contract_WfTeam.Submit_UID = new Guid(item.Submit_UID);
-                    //model_Contract_WfTeam.FuntionManager1_UIDs = ConvertToNtids(item.FM1, users);
-                    //model_Contract_WfTeam.FuntionManager2_UIDs = ConvertToNtids(item.FM2, users);
-                    //model_Contract_WfTeam.FunctionDirector_UIDs = string.Empty;
-                    //model_Contract_WfTeam.FunctionVP_UIDs = String.Empty;
-                    //model_Contract_WfTeam.BUManager_UIDs = String.Empty;
-                    //model_Contract_WfTeam.BUDirector_UIDs = String.Empty;
-                    //model_Contract_WfTeam.BUVP_UIDs = String.Empty;
-                    //model_Contract_WfTeam.PurchasingManager_UIDs = ConvertToNtids(item.PUR, users);
-                    //model_Contract_WfTeam.PurchasingDirector_UIDs = String.Empty;
-                    //model_Contract_WfTeam.SupplyChainManager_UIDs = ConvertToNtids(item.SCM, users);
-                    //model_Contract_WfTeam.SupplyChainDirector_UIDs = String.Empty;
-                    //model_Contract_WfTeam.FinanceManager_UIDs = ConvertToNtids(item.FINANCE, users);
-                    //model_Contract_WfTeam.FinanceController_UIDs = ConvertToNtids(item.FINANCE2, users);
-                    //model_Contract_WfTeam.FinanceSeniorController_UIDs = String.Empty;
-                    //model_Contract_WfTeam.LegalGeneral1_UIDs = String.Empty;
-                    //model_Contract_WfTeam.LegalGeneral2_UIDs = String.Empty;
-                    //model_Contract_WfTeam.LegalCustomer_ABC_UIDs = string.Empty;
-                    //model_Contract_WfTeam.LegalCustomer_NDA_UIDs = ConvertToNtids(item.LEGAL_CUSTOMER_NDA, users);
-                    //model_Contract_WfTeam.LegalCustomer1_UIDs = ConvertToNtids(item.C1ST_LEGAL_CUSTOMER, users);
-                    //model_Contract_WfTeam.LegalCustomer2_UIDs = ConvertToNtids(item.C2ND_LEGAL_CUSTOMER, users);
-                    //model_Contract_WfTeam.LegalService1_UIDs = ConvertToNtids(item.C1ST_LEGAL_SERVICE, users);
-                    //model_Contract_WfTeam.LegalService2_UIDs = ConvertToNtids(item.C2ND_LEGAL_SERVICE, users);
-                    //model_Contract_WfTeam.LegalUS1_UIDs = String.Empty;
-                    //model_Contract_WfTeam.LegalUS2_UIDs = String.Empty;
-                    //model_Contract_WfTeam.OPManager_UIDs = ConvertToNtids(item.OPM, users);
-                    //model_Contract_WfTeam.OPDirector_UIDs = String.Empty;
-                    //model_Contract_WfTeam.OPAssisstant_UIDs = ConvertToNtids(item.OPA, users);
-                    //model_Contract_WfTeam.Upload_PIC_UIDs = String.Empty;
-                    //model_Contract_WfTeam.Upload_PICFunctionManager_UIDs = String.Empty;
-                    //model_Contract_WfTeam.File_In_PIC_UIDs = String.Empty;
-                    //model_Contract_WfTeam.Is_Enable = true;
-
+                    list.AddRange(InsertRoleUsers(model_Contract_WfTeam, item, users));
                 }
-                //context.Contract_WfTeam.AddRange(contract_wf_team);
-                //context.SaveChanges();
+                var date = DateTime.Now;
+                list = list.Distinct(m => Tuple.Create(m.Department_UID, m.Submitter_UID, m.Reviewer_UID, m.WfTask_Role)).ToList();
+                foreach (var item in list)
+                {
+                    item.Contract_WfTeam_UID = Guid.NewGuid();
+                    item.Modified_Date = date;
+                    item.Modified_UID = modified_guid;
+                    item.Modified_Remarks = modify_remarks;
+                }
+                context.Contract_WfTeam.AddRange(list);
+                context.SaveChanges();
 
             }
 
-
-
-
-
         }
-
+       
         public static void Insert_Tb_WfTask()
         {
             List<string> contract_M_no = new List<string>();
@@ -2094,6 +2233,7 @@ WHERE Company_UID=(SELECT  TOP 1 Company_UID FROM  ContractTemplate WHERE Compan
 
 
     }
+
 
     //SITE_CODE DEPARTMENT  Company_Code Department_UID, Company_UID
 
