@@ -2,18 +2,20 @@
 using SPP.Econtract1._0;
 using SPP.Econtract2._0;
 using System;
+using System.Data;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-
-
-
-
+using System.Configuration;
+using System.Data.Entity;
 
 namespace SPP.Migration
 {
+
+
     public static class ContractConsts
     {
         public struct RoleName
@@ -44,18 +46,314 @@ namespace SPP.Migration
 
         }
 
+        public struct OldRoleName
+        {
+            public const string Applicant = "Applicant";
+            public const string Applicant1 = "Applicant1";
+            public const string Applicant2 = "Applicant2";
+            public const string FM1 = "FM1";
+            public const string FM2 = "FM2";
+            public const string PUR = "PUR";
+            public const string SCM = "SCM";
+            public const string FINANCE = "FINANCE";
+            public const string FINANCE2 = "FINANCE2";
+            public const string LEGAL = "LEGAL";
+            public const string LEGAL2 = "LEGAL2";
+            public const string OPM = "OPM";
+            public const string OPA = "OPA";
+            public const string OPA1 = "OPA1";
+            public const string Upload_User = "Upload User";
+            public const string DCC = "DCC";
+
+        }
+
+        public struct OldUserRole
+        {
+            public const string CONTRACT_CREATOR = "CONTRACT_CREATOR";
+            public const string CONTRACT_VIEWER = "CONTRACT_VIEWER";
+            public const string CONTRACT_ADMIN = "CONTRACT_ADMIN";
+            public const string CONTRACT_REVIEWER = "CONTRACT_REVIEWER";
+            public const string OP_ASSISTANT = "OP_ASSISTANT";
+        }
+
+        public struct NewUserRole
+        {
+            public const string Contract_Approver = "Contract_Approver";
+            public const string Contract_Viewer = "Contract_Viewer";
+            public const string Contract_Creator = "Contract_Creator";
+            public const string E_Contract_Admin = "E-Contract_Admin";
+            public const string E_Contract_OPA = "E-Contract_OPA";
+        }
+
+        public struct OldReviewStatus
+        {
+            public const string FM1_Review = "FM1 Review";
+            public const string FM2_Review = "FM2 Review";
+            public const string PUR_Review = "PUR Review";
+            public const string SCM_Review = "SCM Review";
+            public const string Finance_Review = "Finance Review";
+            public const string Finance2_Review = "Finance2 Review";
+            public const string Legal_Review = "Legal Review";
+            public const string OPM_Review = "OPM Review";
+            public const string Approved = "Approved";
+            public const string OPM_Approved = "OPM Approved";
+            public const string Stamping = "Stamping";
+            public const string Upload = "Upload";
+            public const string DCC_File_In = "DCC File In";
+            public const string Completed = "Completed";
+            public const string Withdraw = "Withdraw";
+            public const string Rejected = "Rejected";
+        }
+
+        public struct NewReviewStatus
+        {
+
+            public const string Function_Manager_I_Review = "Function Manager I Review";
+            public const string Function_Manager_II_Review = "Function Manager II Review";
+            public const string Under_Review = "Under Review";
+            public const string OPM_Review = "OPM Review";
+            public const string OPD_Review = "OPD Review";
+            public const string Approved = "Approved";
+            public const string To_Stamp = "To Stamp";
+            public const string Stamping = "Stamping";
+            public const string Upload = "Upload";
+            public const string File_In = "File In";
+            public const string Completed = "Completed";
+            public const string Withdraw = "Withdraw";
+            public const string Rejected = "Rejected";
+        }
+
+        public struct Task
+        {
+            public const string Submit = "Submit";
+            public const string Review = "Review";
+            public const string Recheck = "Recheck";
+            public const string ReadyToStamp = "ReadyToStamp";
+            public const string Stamping_Done = "Stamping Done";
+            public const string Upload = "Upload";
+            public const string File_In = "File In";
+
+        }
 
     }
 
     class Program
     {
+
+        #region 辅助方法-------------------Add By Hongzhong 2017/05
+
+        public static string GetStatus(string oldStatus)
+        {
+            var new_status = oldStatus;
+            switch (oldStatus)
+            {
+
+                case ContractConsts.OldReviewStatus.FM1_Review:
+                    new_status = ContractConsts.NewReviewStatus.Function_Manager_I_Review;
+                    break;
+                case ContractConsts.OldReviewStatus.FM2_Review:
+                    new_status = ContractConsts.NewReviewStatus.Function_Manager_II_Review;
+                    break;
+
+
+                case ContractConsts.OldReviewStatus.PUR_Review:
+                    new_status = ContractConsts.NewReviewStatus.Under_Review;
+                    break;
+                case ContractConsts.OldReviewStatus.SCM_Review:
+                    new_status = ContractConsts.NewReviewStatus.Under_Review;
+                    break;
+                case ContractConsts.OldReviewStatus.Finance_Review:
+                    new_status = ContractConsts.NewReviewStatus.Under_Review;
+                    break;
+                case ContractConsts.OldReviewStatus.Finance2_Review:
+                    new_status = ContractConsts.NewReviewStatus.Under_Review;
+                    break;
+                case ContractConsts.OldReviewStatus.Legal_Review:
+                    new_status = ContractConsts.NewReviewStatus.Under_Review;
+                    break;
+
+
+                case ContractConsts.OldReviewStatus.OPM_Approved:
+                    new_status = ContractConsts.NewReviewStatus.To_Stamp;
+                    break;
+
+                case ContractConsts.OldReviewStatus.DCC_File_In:
+                    new_status = ContractConsts.NewReviewStatus.File_In;
+                    break;
+
+            }
+
+            return new_status;
+
+
+        }
+
+        public static string GetRoleName(string RoleName)
+        {
+            var new_roleName = RoleName;
+            switch (RoleName)
+            {
+                case ContractConsts.OldRoleName.Applicant:
+                    new_roleName = ContractConsts.RoleName.Applicant;
+                    break;
+                case ContractConsts.OldRoleName.Applicant1:
+                    new_roleName = ContractConsts.RoleName.Applicant;
+                    break;
+                case ContractConsts.OldRoleName.Applicant2:
+                    new_roleName = ContractConsts.RoleName.Applicant;
+                    break;
+                case ContractConsts.OldRoleName.FM1:
+                    new_roleName = ContractConsts.RoleName.Function_Manager_I;
+                    break;
+                case ContractConsts.OldRoleName.FM2:
+                    new_roleName = ContractConsts.RoleName.Function_Manager_II;
+                    break;
+                case ContractConsts.OldRoleName.PUR:
+                    new_roleName = ContractConsts.RoleName.Purchasing_I;
+                    break;
+                case ContractConsts.OldRoleName.SCM:
+                    new_roleName = ContractConsts.RoleName.SCM_I;
+                    break;
+                case ContractConsts.OldRoleName.FINANCE:
+                    new_roleName = ContractConsts.RoleName.Finance_I;
+                    break;
+                case ContractConsts.OldRoleName.FINANCE2:
+                    new_roleName = ContractConsts.RoleName.Finance_II;
+                    break;
+                case ContractConsts.OldRoleName.LEGAL:
+                    new_roleName = ContractConsts.RoleName.Legal_Approver_I;
+                    break;
+                case ContractConsts.OldRoleName.LEGAL2:
+                    new_roleName = ContractConsts.RoleName.Legal_Approver_II;
+                    break;
+                case ContractConsts.OldRoleName.OPM:
+                    new_roleName = ContractConsts.RoleName.OPM;
+                    break;
+                case ContractConsts.OldRoleName.OPA:
+                    new_roleName = ContractConsts.RoleName.OP_Assistant;
+                    break;
+                case ContractConsts.OldRoleName.OPA1:
+                    new_roleName = ContractConsts.RoleName.OP_Assistant;
+                    break;
+                case ContractConsts.OldRoleName.Upload_User:
+                    new_roleName = ContractConsts.RoleName.Upload_PIC;
+                    break;
+                case ContractConsts.OldRoleName.DCC:
+                    new_roleName = ContractConsts.RoleName.File_In_PIC;
+                    break;
+
+
+            }
+
+            return new_roleName;
+
+        }
+
+        private static string GetConnectString()
+        {
+            string conStr = ConfigurationManager.ConnectionStrings["SPP_MVC_Entities"].ConnectionString;
+            int i = conStr.IndexOf("data source");
+            conStr = conStr.Substring(i);
+            i = conStr.IndexOf('"');
+            conStr = conStr.Substring(0, i);
+            return conStr;
+        }
+
+        public static void BulkInsert<T>(string connection, string tableName, IList<T> list)
+        {
+            using (var bulkCopy = new SqlBulkCopy(connection))
+            {
+                bulkCopy.BatchSize = list.Count;
+                bulkCopy.DestinationTableName = tableName;
+                bulkCopy.BulkCopyTimeout = 600;
+                var table = new DataTable();
+                var props = TypeDescriptor.GetProperties(typeof(T))
+                                           .Cast<PropertyDescriptor>()
+                                           .Where(propertyInfo => propertyInfo.PropertyType != null
+                                                && propertyInfo.PropertyType.Namespace != null
+                                                && propertyInfo.PropertyType.Namespace.Equals("System"))
+                                           .ToArray();
+
+                foreach (var propertyInfo in props)
+                {
+                    bulkCopy.ColumnMappings.Add(propertyInfo.Name, propertyInfo.Name);
+                    table.Columns.Add(propertyInfo.Name, Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType);
+                }
+
+                var values = new object[props.Length];
+                foreach (var item in list)
+                {
+                    for (var i = 0; i < values.Length; i++)
+                    {
+                        values[i] = props[i].GetValue(item);
+                    }
+
+                    table.Rows.Add(values);
+                }
+
+                bulkCopy.WriteToServer(table);
+            }
+        }
+
+        public static void starMethodName(string name)
+        {
+            Console.WriteLine(name + DateTime.Now.ToString() + " 开始运行.");
+
+        }
+
+        public static void endMethodName(string name)
+        {
+            Console.WriteLine(name + DateTime.Now.ToString() + " 结束运行.");
+        }
+
+        public static void Delete_ALL()
+        {
+            using (var context = new SPP_MVC_Entities())
+            {
+                var contract_m = context.Contract_M.ToList();
+                var users = context.Users.Where(m => m.Modified_Remarks == modify_remarks).ToList();
+                var company = context.Company.Where(m => m.Modified_Remarks == modify_remarks).ToList();
+                var department = context.Department.Where(m => m.Modified_Remarks == modify_remarks).ToList();
+                var users_company_department = context.Users_CompanyDepartment.Where(m => m.Modified_Remarks == modify_remarks).ToList();
+                var contracttype_m = context.ContractType_M.ToList();
+                var contracttype_d = context.ContractType_D.ToList();
+                var contracttemplate = context.ContractTemplate.ToList();
+
+
+                context.Contract_M.RemoveRange(contract_m);
+                context.Users.RemoveRange(users);
+                context.Company.RemoveRange(company);
+                context.Department.RemoveRange(department);
+                context.Users_CompanyDepartment.RemoveRange(users_company_department);
+                context.ContractTemplate.RemoveRange(contracttemplate);
+                context.ContractType_D.RemoveRange(contracttype_d);
+                context.ContractType_M.RemoveRange(contracttype_m);
+                context.SaveChanges();
+            }
+        }
+
+        public static void overMethodName()
+        {
+            Console.WriteLine("全部执行完毕.");
+            Console.ReadKey();
+        }
+
+
+        #endregion
+
+
+        #region 公用变量-------------------Add By Hongzhong 2017/05
+        public static Guid modified_guid = new Guid("0B08C006-5AB5-E611-83F5-005056BF221C");
+        public static string modify_remarks = "E-Contract 1.0 data migration to E-Contract 2.0";
+        public static Guid module_uid = new Guid("39326F1E-54C6-4ED7-9D2D-A0415F8321D3");
+        public static string wf_cancel_remarks = "Canceled by System Admin, due to E-Contract 1.0 data migration to E-Contract 2.0.";
+
+        #endregion
+
         static void Main(string[] args)
         {
-
             //Insert_Tb_Contract_Attachment();
-   
             //Insert_Tb_WfTask_History();
-
             #region Contract Applicant -------------------Add By Hongzhong 2017/04
             //Delete_ALL();
             //Insert_Tb_Users();
@@ -83,7 +381,35 @@ namespace SPP.Migration
             //Insert_Users_Role();
             //Insert_Users_Role();
             //test_DataWarranty_End_Date
-            Insert_Tb_Contract_WfTeam();
+            //Insert_Tb_Contract_WfTeam();
+
+
+
+
+
+            //Insert_Contract_M();
+
+            //Insert_Tb_Contract_Attachment();
+
+            //Insert_Tb_WfTask();
+
+            //Update_WFTask();
+
+            //Insert_Tb_WfTask_History();
+
+            Update_Tb_Contract_Attachment();
+
+            //Insert_Tb_WfTaskDelaySetting();
+
+            overMethodName();
+
+
+            //Insert_Users_Role();
+
+            //Insert_Tb_WfTask();
+            //Update_WFTask();
+            //Insert_Tb_WfTask_History();
+
 
         }
 
@@ -103,31 +429,17 @@ namespace SPP.Migration
             ////导入申请人权限
             Insert_Users_Role();
             Insert_Tb_Contract_Attachment();
+            Update_Tb_Contract_Attachment();
             Insert_Tb_Contract_WfTeam();
             Insert_Tb_WfTaskDelaySetting();
             Insert_Tb_WfDelegation();
             Insert_Tb_WfDelegation_History();
             Insert_Tb_WfEmail_StopExpirationNotice();
             Insert_Tb_WfTask();
+            Update_WFTask();
             Insert_Tb_WfTask_History();
 
         }
-
-        public static Guid modified_guid = new Guid("0B08C006-5AB5-E611-83F5-005056BF221C");
-        public static string modify_remarks = "E-Contract 1.0 data migration to E-Contract 2.0";
-        public static Guid module_uid = new Guid("39326F1E-54C6-4ED7-9D2D-A0415F8321D3");
-        
-
-        //public static Guid approver_uid = new Guid("B426802E-1820-E711-A4CC-005056BF221B");
-
-        //SELECT* FROM  dbo.Users
-        //SELECT* FROM  dbo.Company
-        //SELECT* FROM dbo.Department
-        //SELECT* FROM Users_CompanyDepartment
-        //SELECT* FROM dbo.ContractType_M
-        //SELECT* FROM dbo.ContractType_D
-        //SELECT* FROM  dbo.ContractTemplate
-        //
 
         public static void Insert_Tb_Users()
         {
@@ -334,36 +646,36 @@ namespace SPP.Migration
             //";
 
 
-//            var sql = @"
-//SELECT t.*,y.COST_CENTER FROM  
+            //            var sql = @"
+            //SELECT t.*,y.COST_CENTER FROM  
 
-//(
-//SELECT DISTINCT SITE_NAME AS SITE_CODE ,DEPARTMENT AS DEPARTMENT,
-//			b.Company_Code,
-//'95BCBAB5-544C-465A-A6F1-4B9DBD'+ RIGHT('000000'+CAST(ROW_NUMBER()OVER( ORDER BY GETDATE() ) AS nvarchar(50)),6 )
-//AS Department_UID,
-//'' AS Company_UID 
-//			 FROM 
-//			(
+            //(
+            //SELECT DISTINCT SITE_NAME AS SITE_CODE ,DEPARTMENT AS DEPARTMENT,
+            //			b.Company_Code,
+            //'95BCBAB5-544C-465A-A6F1-4B9DBD'+ RIGHT('000000'+CAST(ROW_NUMBER()OVER( ORDER BY GETDATE() ) AS nvarchar(50)),6 )
+            //AS Department_UID,
+            //'' AS Company_UID 
+            //			 FROM 
+            //			(
 
-//		    SELECT DISTINCT SITE_NAME,DEPARTMENT FROM  dbo.SYSTEM_USER_DEPARTMENT
-//			UNION ALL
-//			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE
+            //		    SELECT DISTINCT SITE_NAME,DEPARTMENT FROM  dbo.SYSTEM_USER_DEPARTMENT
+            //			UNION ALL
+            //			SELECT DISTINCT SITE_CODE,DEPARTMENT FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE
 
-//			)a 
-//			LEFT JOIN  
-//(
-//select distinct NAME_0 as SITE_CODE , CCODE  as Company_Code  from SYSTEM_PLANT, SYSTEM_USER_PLANT
-//where SYSTEM_PLANT.LOCATION = SYSTEM_USER_PLANT.PLANT_LOCATION
-//and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
-//) b ON  a.SITE_NAME=b.SITE_CODE GROUP BY  a.SITE_NAME,a.DEPARTMENT,b.Company_Code 
-//) t LEFT JOIN  
-//(SELECT DISTINCT SITE_CODE,DEPARTMENT ,COST_CENTER FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE WHERE Cost_center IS NOT NULL )y 
-//ON  t.SITE_CODE=y.SITE_CODE  AND t.DEPARTMENT=y.DEPARTMENT
+            //			)a 
+            //			LEFT JOIN  
+            //(
+            //select distinct NAME_0 as SITE_CODE , CCODE  as Company_Code  from SYSTEM_PLANT, SYSTEM_USER_PLANT
+            //where SYSTEM_PLANT.LOCATION = SYSTEM_USER_PLANT.PLANT_LOCATION
+            //and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
+            //) b ON  a.SITE_NAME=b.SITE_CODE GROUP BY  a.SITE_NAME,a.DEPARTMENT,b.Company_Code 
+            //) t LEFT JOIN  
+            //(SELECT DISTINCT SITE_CODE,DEPARTMENT ,COST_CENTER FROM dbo.WF_REVIEW_TEAM_CONTRACT_SITE WHERE Cost_center IS NOT NULL )y 
+            //ON  t.SITE_CODE=y.SITE_CODE  AND t.DEPARTMENT=y.DEPARTMENT
 
 
 
-//";
+            //";
 
             var sql = @"
                      SELECT DISTINCT SITE_NAME AS SITE_CODE ,DEPARTMENT AS DEPARTMENT,
@@ -598,10 +910,32 @@ and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
                     model_ContractType_D.Need_Purchasing = item.ISPURREVIEW.HasValue ? Convert.ToBoolean(item.ISPURREVIEW) : false;
                     model_ContractType_D.Need_SupplyChain = item.ISSCMREVIEW.HasValue ? Convert.ToBoolean(item.ISSCMREVIEW) : false;
                     model_ContractType_D.Need_Legal_General = item.ONLYLEGALREVIEW.HasValue ? Convert.ToBoolean(item.ONLYLEGALREVIEW) : false;
+
                     model_ContractType_D.Need_Legal_CustomerABC = false;
                     model_ContractType_D.Need_Legal_CustomerNDA = false;
+
                     model_ContractType_D.Need_Legal_Customer = false;
                     model_ContractType_D.Need_Legal_Service = false;
+
+                    //if (item.TYPE_CODE.Trim() == Legal_Customer_ABC_ONE)
+                    //{
+                    //    model_ContractType_D.Need_Legal_CustomerABC = true;
+                    //}
+                    //if (item.TYPE_CODE.Trim() == Legal_Customer_NDA_ONE)
+                    //{
+                    //    model_ContractType_D.Need_Legal_CustomerNDA = true;
+                    //}
+
+                    //if (item.TYPE_CATEGORY.Trim() == Legal_Customer)
+                    //{
+                    //    model_ContractType_D.Need_Legal_Customer = true;
+                    //}
+
+                    //if (Legal_Service.Contains(item.TYPE_CATEGORY.Trim()) == true)
+                    //{
+                    //    model_ContractType_D.Need_Legal_Service = true;
+                    //}
+
                     model_ContractType_D.Is_Enable = true;
                     model_ContractType_D.Modified_UID = modified_guid;
                     model_ContractType_D.Modified_Date = DateTime.Now;
@@ -704,32 +1038,6 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
             }
 
 
-        }
-
-        public static void Delete_ALL()
-        {
-            using (var context = new SPP_MVC_Entities())
-            {
-                var contract_m = context.Contract_M.ToList();
-                var users = context.Users.Where(m => m.Modified_Remarks == modify_remarks).ToList();
-                var company = context.Company.Where(m => m.Modified_Remarks == modify_remarks).ToList();
-                var department = context.Department.Where(m => m.Modified_Remarks == modify_remarks).ToList();
-                var users_company_department = context.Users_CompanyDepartment.Where(m => m.Modified_Remarks == modify_remarks).ToList();
-                var contracttype_m = context.ContractType_M.ToList();
-                var contracttype_d = context.ContractType_D.ToList();
-                var contracttemplate = context.ContractTemplate.ToList();
-
-
-                context.Contract_M.RemoveRange(contract_m);
-                context.Users.RemoveRange(users);
-                context.Company.RemoveRange(company);
-                context.Department.RemoveRange(department);
-                context.Users_CompanyDepartment.RemoveRange(users_company_department);
-                context.ContractTemplate.RemoveRange(contracttemplate);
-                context.ContractType_D.RemoveRange(contracttype_d);
-                context.ContractType_M.RemoveRange(contracttype_m);
-                context.SaveChanges();
-            }
         }
 
         public static void Delete_ContractType()
@@ -874,7 +1182,7 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
 
         public static void Insert_Contract_M()
         {
-
+            starMethodName("Insert_Contract_M");
             List<Users> users = new List<Users>();
             List<Company> company = new List<Company>();
             List<Department> department = new List<Department>();
@@ -1056,11 +1364,17 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     model_Contract_M.Delivery_Date = item.DELIVERY_DATE;
                     model_Contract_M.Project_Commencement_Date = item.PRO_COMPLETION_DATE;
                     model_Contract_M.Project_Completion_Date = item.PRO_COMPLETION_DATE;
-                    model_Contract_M.Warranty_Begin_Date =null ;
+                    model_Contract_M.Warranty_Begin_Date = null;
                     model_Contract_M.Warranty_End_Date = item.WARRANTY_PERIOD;
                     model_Contract_M.Estimate_Effective_Date = item.ESTIMATE_EFFECTIVE_DATE;
                     model_Contract_M.Is_MultipleContractorMaster = null;
-                    model_Contract_M.Status = item.STATUS;
+                    //model_Contract_M.Status = item.STATUS;
+                    model_Contract_M.Status = GetStatus(item.STATUS);
+                    model_Contract_M.Is_Enable = true;
+                    if (model_Contract_M.Status.Trim() == ContractConsts.NewReviewStatus.Withdraw)
+                    {
+                        model_Contract_M.Is_Enable = false;
+                    }
                     model_Contract_M.Version = item.VERSION;
                     model_Contract_M.Is_Latest = Convert.ToBoolean(item.IS_LATEST);
                     model_Contract_M.Modified_UID = users.Where(m => m.User_NTID.ToLower() == item.Modify_NTID.ToLower()).FirstOrDefault().Users_UID;
@@ -1083,86 +1397,192 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
 
                     Contract_M_list.Add(model_Contract_M);
 
+
+
                 }
 
             }
 
 
-            using (var context = new SPP_MVC_Entities())
-            {
-                //context.SPP.Econtract2._0.Contract_M.AddRange(Contract_M_list);
-                //context.Econtract2._0.CONTRACT_M.AddRange(Contract_M_list);
-                context.Contract_M.AddRange(Contract_M_list);
-                context.SaveChanges();
-            }
+            //using (var context = new SPP_MVC_Entities())
+            //{
+            //    context.Contract_M.AddRange(Contract_M_list);
+            //    context.SaveChanges();
+            //}
 
+            BulkInsert(GetConnectString(), "Contract_M", Contract_M_list);
 
+            endMethodName("Insert_Contract_M");
 
         }
 
         public static void Insert_Users_Role()
         {
+            List<Users_Role> user_roles = new List<Users_Role>();
 
-            using (var context = new SPP_MVC_Entities())
-            {
-                var sql_creator = @"
-                        INSERT Users_Role
-                        SELECT NEWID(),t.* FROM 
-                        (
-                        SELECT DISTINCT 
-                        Applicant_UID ,
-                        (SELECT  TOP 1 Role_UID FROM  ROLE WHERE Role_ID='Contract_Creator') AS Users_UID,
-                        '0B08C006-5AB5-E611-83F5-005056BF221C' AS  Modified_UID,
-                        GETDATE() AS Modified_Date, 
-                        'E-Contract 1.0 data migration to E-Contract 2.0' AS Modified_Remarks
-                         FROM Contract_M WHERE Is_latest=1
-                        AND Applicant_UID NOT IN 
-                        (
-                        SELECT DISTINCT Users_UID FROM Users_Role WHERE Role_UID =
-                        (SELECT  TOP 1 Role_UID FROM  ROLE WHERE Role_ID='Contract_Creator'))
-                        )t
-                        ";
+            user_roles.AddRange(Insert_Users_Role_Child(ContractConsts.OldUserRole.CONTRACT_CREATOR, ContractConsts.NewUserRole.Contract_Creator));
+            user_roles.AddRange(Insert_Users_Role_Child(ContractConsts.OldUserRole.CONTRACT_REVIEWER, ContractConsts.NewUserRole.Contract_Approver));
+            user_roles.AddRange(Insert_Users_Role_Child(ContractConsts.OldUserRole.CONTRACT_VIEWER, ContractConsts.NewUserRole.Contract_Viewer));
+            user_roles.AddRange(Insert_Users_Role_Child(ContractConsts.OldUserRole.OP_ASSISTANT, ContractConsts.NewUserRole.E_Contract_OPA));
+            user_roles.AddRange(Insert_Users_Role_Child(ContractConsts.OldUserRole.CONTRACT_ADMIN, ContractConsts.NewUserRole.E_Contract_Admin));
+            BulkInsert(GetConnectString(), "Users_Role", user_roles);
+
+            //            #region Contract Open Pending Closed -------------------Add By Hongzhong 2017/05
+            //            using (var context = new SPP_MVC_Entities())
+            //            {
+            //                var sql_creator = @"
+            //                        INSERT Users_Role
+            //                        SELECT NEWID(),t.* FROM 
+            //                        (
+            //                        SELECT DISTINCT 
+            //                        Applicant_UID ,
+            //                        (SELECT  TOP 1 Role_UID FROM  ROLE WHERE Role_ID='Contract_Creator') AS Users_UID,
+            //                        '0B08C006-5AB5-E611-83F5-005056BF221C' AS  Modified_UID,
+            //                        GETDATE() AS Modified_Date, 
+            //                        'E-Contract 1.0 data migration to E-Contract 2.0' AS Modified_Remarks
+            //                         FROM Contract_M WHERE Is_latest=1
+            //                        AND Applicant_UID NOT IN 
+            //                        (
+            //                        SELECT DISTINCT Users_UID FROM Users_Role WHERE Role_UID =
+            //                        (SELECT  TOP 1 Role_UID FROM  ROLE WHERE Role_ID='Contract_Creator'))
+            //                        )t
+            //                        ";
+            //                context.Database.ExecuteSqlCommand(sql_creator);
+            //                context.SaveChanges();
+            //            }
+            //            #endregion
+
+            //            #region Reviewer-------------------Add By Hongzhong 2017/05
+            //            List<string> reivewer_ntid = new List<string>();
+            //            using (var context = new SPP_ProductionEntities())
+            //            {
+            //                string sql = string.Format(@"
+            //                SELECT DISTINCT LOWER(RTRIM(b.ACCOUNT)) AS account FROM dbo.SYSTEM_USERS_ROLE a INNER JOIN dbo.SYSTEM_USERS b
+            //                ON a.ACCOUNT_UID=b.ACCOUNT_UID
+            //                WHERE ROLE='CONTRACT_REVIEWER'
+            //              ");
+            //                reivewer_ntid = context.Database.SqlQuery<string>(sql).ToList<string>();
+            //            }
+
+            //            List<string> reviewer_exists = new List<string>();
+
+            //            List<string> except_lists = new List<string>();
+            //            using (var context = new SPP_MVC_Entities())
+            //            {
+            //                string sql = string.Format(@"SELECT LOWER(b.User_NTID) FROM dbo.Users_Role a INNER JOIN  dbo.Users b
+            //ON a.Users_UID=b.Users_UID AND a.Role_UID=(SELECT Role_UID FROM dbo.Role WHERE Role_ID='Contract_Approver')
+            //");
+            //                reviewer_exists = context.Database.SqlQuery<string>(sql).ToList<string>();
+
+            //                except_lists = reivewer_ntid.Except(reviewer_exists).ToList<string>();
+
+            //                var users = context.Users.ToList();
+
+            //                var approver_uid = context.Role.ToList().Where(m => m.Role_ID == "Contract_Approver").FirstOrDefault().Role_UID;
+
+            //                List<Users_Role> user_roles = new List<Users_Role>();
+            //                for (int i = 0; i < except_lists.Count; i++)
+            //                {
+            //                    Users_Role model_Users_Role = new Users_Role();
+            //                    model_Users_Role.Users_Role_UID = Guid.NewGuid();
+            //                    model_Users_Role.Users_UID = users.Where(m => m.User_NTID.ToLower() == except_lists[i].ToLower().ToString().Trim()).FirstOrDefault().Users_UID;
+            //                    model_Users_Role.Role_UID = approver_uid;//
+            //                    model_Users_Role.Modified_UID = modified_guid;
+            //                    model_Users_Role.Modified_Date = DateTime.Now;
+            //                    model_Users_Role.Modified_Remarks = modify_remarks;
+            //                    user_roles.Add(model_Users_Role);
+
+            //                }
+            //                context.Users_Role.AddRange(user_roles);
+            //                context.SaveChanges();
+            //            }
+            //            #endregion
+            //            //User View 角色导入
+            //            #region Contract_Viewer-------------------Add By Hongzhong 2017/05
+            //            List<string> viewer_id = new List<string>();
+            //            using (var context = new SPP_ProductionEntities())
+            //            {
+            //                string sql = string.Format(@"
+            //                SELECT DISTINCT LOWER(RTRIM(b.ACCOUNT)) AS account FROM dbo.SYSTEM_USERS_ROLE a INNER JOIN dbo.SYSTEM_USERS b
+            //                ON a.ACCOUNT_UID=b.ACCOUNT_UID
+            //                WHERE ROLE='CONTRACT_VIEWER'
+            //              ");
+            //                viewer_id = context.Database.SqlQuery<string>(sql).ToList<string>();
+            //            }
+            //            List<string> viewer_exists = new List<string>();
+            //            List<string> except_viewer_lists = new List<string>();
+            //            using (var context = new SPP_MVC_Entities())
+            //            {
+            //                string sql = string.Format(@"SELECT LOWER(b.User_NTID) FROM dbo.Users_Role a INNER JOIN  dbo.Users b
+            //ON a.Users_UID=b.Users_UID AND a.Role_UID=(SELECT Role_UID FROM dbo.Role WHERE Role_ID='Contract_Viewer')
+            //");
+            //                viewer_exists = context.Database.SqlQuery<string>(sql).ToList<string>();
+
+            //                except_viewer_lists = viewer_id.Except(viewer_exists).ToList<string>();
+
+            //                var users = context.Users.ToList();
+
+            //                var viewer_uid = context.Role.Where(m => m.Role_ID == "Contract_Viewer").FirstOrDefault().Role_UID;
+
+            //                List<Users_Role> user_roles = new List<Users_Role>();
+            //                for (int i = 0; i < except_viewer_lists.Count; i++)
+            //                {
+            //                    Users_Role model_Users_Role = new Users_Role();
+            //                    model_Users_Role.Users_Role_UID = Guid.NewGuid();
+            //                    model_Users_Role.Users_UID = users.Where(m => m.User_NTID.ToLower() == except_viewer_lists[i].ToLower().ToString().Trim()).FirstOrDefault().Users_UID;
+            //                    model_Users_Role.Role_UID = viewer_uid;//
+            //                    model_Users_Role.Modified_UID = modified_guid;
+            //                    model_Users_Role.Modified_Date = DateTime.Now;
+            //                    model_Users_Role.Modified_Remarks = modify_remarks;
+            //                    user_roles.Add(model_Users_Role);
+            //                }
+            //                context.Users_Role.AddRange(user_roles);
+            //                context.SaveChanges();
+            //            }
+            //            #endregion
 
 
 
 
-                context.Database.ExecuteSqlCommand(sql_creator);
-                context.SaveChanges();
-            }
 
-            List<string> reivewer_ntid = new List<string>();
+        }
+
+        public static List<Users_Role> Insert_Users_Role_Child(string oldRoleName, string newRoleName)
+        {
+
+            List<string> ntid_lists = new List<string>();
+            List<string> exists_lists = new List<string>();
+            List<string> except_lists = new List<string>();
             using (var context = new SPP_ProductionEntities())
             {
                 string sql = string.Format(@"
-                SELECT DISTINCT LOWER(RTRIM(b.ACCOUNT)) AS account FROM dbo.SYSTEM_USERS_ROLE a INNER JOIN dbo.SYSTEM_USERS b
+     SELECT DISTINCT LOWER(RTRIM(b.ACCOUNT)) AS account FROM dbo.SYSTEM_USERS_ROLE a INNER JOIN dbo.SYSTEM_USERS b
                 ON a.ACCOUNT_UID=b.ACCOUNT_UID
-                WHERE ROLE='CONTRACT_REVIEWER'
-              ");
-                reivewer_ntid = context.Database.SqlQuery<string>(sql).ToList<string>();
+                WHERE ROLE='{0}'
+              ", oldRoleName);
+                ntid_lists = context.Database.SqlQuery<string>(sql).ToList<string>();
             }
 
-            List<string> reviewer_exists = new List<string>();
 
-            List<string> except_lists = new List<string>();
             using (var context = new SPP_MVC_Entities())
             {
                 string sql = string.Format(@"SELECT LOWER(b.User_NTID) FROM dbo.Users_Role a INNER JOIN  dbo.Users b
-ON a.Users_UID=b.Users_UID AND a.Role_UID=(SELECT Role_UID FROM dbo.Role WHERE Role_ID='Contract_Approver')
-");
-                reviewer_exists = context.Database.SqlQuery<string>(sql).ToList<string>();
+ON a.Users_UID=b.Users_UID AND a.Role_UID=(SELECT Role_UID FROM dbo.Role WHERE Role_ID='{0}')
+", newRoleName);
+                exists_lists = context.Database.SqlQuery<string>(sql).ToList<string>();
 
-                except_lists = reivewer_ntid.Except(reviewer_exists).ToList<string>();
+                except_lists = ntid_lists.Except(exists_lists).ToList<string>();
 
                 var users = context.Users.ToList();
 
-                var approver_uid = context.Role.ToList().Where(m => m.Role_ID == "Contract_Approver").FirstOrDefault().Role_UID;
+                var approver_uid = context.Role.ToList().Where(m => m.Role_ID == newRoleName).FirstOrDefault().Role_UID;
 
                 List<Users_Role> user_roles = new List<Users_Role>();
                 for (int i = 0; i < except_lists.Count; i++)
                 {
                     Users_Role model_Users_Role = new Users_Role();
                     model_Users_Role.Users_Role_UID = Guid.NewGuid();
-                    model_Users_Role.Users_UID = users.Where(m=>m.User_NTID.ToLower() == except_lists[i].ToLower().ToString().Trim ()).FirstOrDefault().Users_UID;
+                    model_Users_Role.Users_UID = users.Where(m => m.User_NTID.ToLower() == except_lists[i].ToLower().ToString().Trim()).FirstOrDefault().Users_UID;
                     model_Users_Role.Role_UID = approver_uid;//
                     model_Users_Role.Modified_UID = modified_guid;
                     model_Users_Role.Modified_Date = DateTime.Now;
@@ -1170,58 +1590,18 @@ ON a.Users_UID=b.Users_UID AND a.Role_UID=(SELECT Role_UID FROM dbo.Role WHERE R
                     user_roles.Add(model_Users_Role);
 
                 }
-                context.Users_Role.AddRange(user_roles);
-                context.SaveChanges();
+
+                return user_roles;
+                //context.Users_Role.AddRange(user_roles);
+                //context.SaveChanges();
+
             }
-
-
-            //User View 角色导入
-            List<string> viewer_id = new List<string>();
-            using (var context = new SPP_ProductionEntities())
-            {
-                string sql = string.Format(@"
-                SELECT DISTINCT LOWER(RTRIM(b.ACCOUNT)) AS account FROM dbo.SYSTEM_USERS_ROLE a INNER JOIN dbo.SYSTEM_USERS b
-                ON a.ACCOUNT_UID=b.ACCOUNT_UID
-                WHERE ROLE='CONTRACT_VIEWER'
-              ");
-                viewer_id = context.Database.SqlQuery<string>(sql).ToList<string>();
-            }
-            List<string> viewer_exists = new List<string>();
-            List<string> except_viewer_lists = new List<string>();
-            using (var context = new SPP_MVC_Entities())
-            {
-                string sql = string.Format(@"SELECT LOWER(b.User_NTID) FROM dbo.Users_Role a INNER JOIN  dbo.Users b
-ON a.Users_UID=b.Users_UID AND a.Role_UID=(SELECT Role_UID FROM dbo.Role WHERE Role_ID='Contract_Viewer')
-");
-                viewer_exists = context.Database.SqlQuery<string>(sql).ToList<string>();
-
-                except_viewer_lists = viewer_id.Except(viewer_exists).ToList<string>();
-
-                var users = context.Users.ToList();
-
-                var viewer_uid = context.Role.Where(m => m.Role_ID == "Contract_Viewer").FirstOrDefault().Role_UID;
-
-                List<Users_Role> user_roles = new List<Users_Role>();
-                for (int i = 0; i < except_viewer_lists.Count; i++)
-                {
-                    Users_Role model_Users_Role = new Users_Role();
-                    model_Users_Role.Users_Role_UID = Guid.NewGuid();
-                    model_Users_Role.Users_UID = users.Where(m => m.User_NTID.ToLower() == except_viewer_lists[i].ToLower().ToString().Trim()).FirstOrDefault().Users_UID;
-                    model_Users_Role.Role_UID = viewer_uid;//
-                    model_Users_Role.Modified_UID = modified_guid;
-                    model_Users_Role.Modified_Date = DateTime.Now;
-                    model_Users_Role.Modified_Remarks = modify_remarks;
-                    user_roles.Add(model_Users_Role);
-                }
-                context.Users_Role.AddRange(user_roles);
-                context.SaveChanges();
-            }
-
 
         }
 
         public static void Insert_Tb_Contract_Attachment()
         {
+            starMethodName("Insert_Tb_Contract_Attachment");
 
             List<WF_REVIEW_TEAM_CONTRACT_SITE> reviewTeam = new List<WF_REVIEW_TEAM_CONTRACT_SITE>();
             List<CONTRACT_D> contract_d = new List<CONTRACT_D>();
@@ -1312,39 +1692,24 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                     model_Contract_Attachment.System_File_Name = item.FILE_NAME;
                     model_Contract_Attachment.Original_File_Name = item.FILE_NAME;
                     model_Contract_Attachment.Display_File_Name = item.FILE_NAME;
-
-                    //var contract_m = contract_m_all.Where(m => m.Contract_M_UID == new Guid(item.CONTRACT_M_UID)).FirstOrDefault();
-                    //if (item.TEMPLATE_TYPE=="1")
-                    //{
-
-                    //    model_Contract_Attachment.Display_File_Name = contract_m.Contract_No+"_"+ contract_m.Contractor+"_"+contract_m.Contract_Name+ "_Draft Version.pdf";
-                    //}
-                    //if (item.TEMPLATE_TYPE == "3")
-                    //{
-                    //    model_Contract_Attachment.Display_File_Name = contract_m.Contract_No + "_" + contract_m.Contractor + "_" + contract_m.Contract_Name + "_Approval Version.pdf";
-                    //}
-                    //if (item.TEMPLATE_TYPE == "4")
-                    //{
-                    //    model_Contract_Attachment.Display_File_Name = contract_m.Contract_No + "_" + contract_m.Contractor + "_" + contract_m.Contract_Name + "_Final Version.pdf";
-                    //}
                     model_Contract_Attachment.File_Size = 0;
-
                     model_Contract_Attachment.Tempkey = Guid.Empty;
                     model_Contract_Attachment.Uploaded_UID = users.Where(m => m.User_NTID.ToLower() == item.CREATOR.ToLower()).FirstOrDefault().Users_UID;
                     model_Contract_Attachment.Uploaded_Date = Convert.ToDateTime(item.UPLOAD_DATE);
-
                     var newFileName = model_Contract_Attachment.Uploaded_Date.ToString("yyMMddhhmmss") + DateTime.Now.Millisecond.ToString() + ".x";
                     var newFilePath = string.Format(@"Temp/{0}", newFileName);
                     model_Contract_Attachment.System_File_Name = newFileName;//导入改名称
-
                     model_Contract_Attachment.File_Path = @"FileVault/" + newFileName;
-
                     attachment_list.Add(model_Contract_Attachment);
-                  
+
                 }
 
                 context.Contract_Attachment.AddRange(attachment_list);
-                context.SaveChanges();
+                //context.SaveChanges();
+
+                BulkInsert(GetConnectString(), "Contract_Attachment", attachment_list);
+                endMethodName("Insert_Tb_Contract_Attachment");
+
             }
 
         }
@@ -1519,7 +1884,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 {
                     //var array = old_team.FINANCE2.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                     var array = old_team.LEGAL.Split(new char[] { ',' }).Distinct().ToList<string>();
-              
+
                     for (int i = 0; i < array.Count; i++)
                     {
                         Contract_WfTeam model_Contract_WfTeam = new Contract_WfTeam();
@@ -1582,7 +1947,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.C1ST_LEGAL_SERVICE.ToString()))
                 {
-                  
+
                     var array = old_team.C1ST_LEGAL_SERVICE.Split(new char[] { ',' }).Distinct().ToList<string>();
 
                     for (int i = 0; i < array.Count; i++)
@@ -1603,7 +1968,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.C2ND_LEGAL_SERVICE.ToString()))
                 {
-                    
+
                     var array = old_team.C2ND_LEGAL_SERVICE.Split(new char[] { ',' }).Distinct().ToList<string>();
 
                     for (int i = 0; i < array.Count; i++)
@@ -1625,7 +1990,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 if (!string.IsNullOrEmpty(old_team.LEGAL_CUSTOMER_NDA.ToString()))
                 {
-                    
+
                     var array = old_team.LEGAL_CUSTOMER_NDA.Split(new char[] { ',' }).Distinct().ToList<string>();
                     for (int i = 0; i < array.Count; i++)
                     {
@@ -1647,7 +2012,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 //Legal_Customer_ABC
                 if (!string.IsNullOrEmpty(old_team.C2ND_LEGAL_CUSTOMER.ToString()))
                 {
-                    
+
                     var array = old_team.C2ND_LEGAL_CUSTOMER.Split(new char[] { ',' }).Distinct().ToList<string>();
 
                     for (int i = 0; i < array.Count; i++)
@@ -1772,7 +2137,7 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
         public static void Insert_Tb_Contract_WfTeam()
         {
-
+            starMethodName("Insert_Tb_Contract_WfTeam");
             List<Insert_Tb_Contract_WfTeam_1> wf_review_teams = new List<Insert_Tb_Contract_WfTeam_1>();
             using (var context = new SPP_ProductionEntities())
             {
@@ -1815,19 +2180,29 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                     item.Modified_UID = modified_guid;
                     item.Modified_Remarks = modify_remarks;
                 }
-                context.Contract_WfTeam.AddRange(list);
-                context.SaveChanges();
+
+                BulkInsert(GetConnectString(), "Contract_WfTeam", list);
+                //context.Contract_WfTeam.AddRange(list);
+                //context.Configuration.AutoDetectChangesEnabled = true;
+                //context.Configuration.ValidateOnSaveEnabled = true;
+                //context.SaveChanges();
+                //context.Configuration.AutoDetectChangesEnabled = true;
+                //context.Configuration.ValidateOnSaveEnabled = true;
+
+                endMethodName("Insert_Tb_Contract_WfTeam");
 
             }
 
         }
-       
+
         public static void Insert_Tb_WfTask()
         {
+            starMethodName("Insert_Tb_WfTask");
             List<string> contract_M_no = new List<string>();
             List<Users> users = new List<Users>();
             using (var context = new SPP_MVC_Entities())
             {
+                //History 表只保存Complete 、Withdraw的数据.
                 contract_M_no = context.Contract_M.Select(m => m.Contract_No.ToString().ToLower().Trim()).Distinct().ToList<string>();
                 users = context.Users.ToList();
 
@@ -1836,11 +2211,17 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
             List<WF_TASK> wf_old_task = new List<WF_TASK>();
             using (var context = new SPP_ProductionEntities())
             {
-
                 //context.Database.CommandTimeout = 60 * 5;
                 //wf_old_task = context.WF_TASK.Where(m => contract_M_uid_str.Contains(m.UID.ToLower()) && string.IsNullOrEmpty(m.STATE)).ToList();
+                //wf_old_task = context.WF_TASK.Where(m => m.STATE == null).ToList();
 
-                wf_old_task = context.WF_TASK.Where(m => m.STATE == null).ToList();
+                var sql = @"
+SELECT * FROM dbo.WF_TASK WHERE
+OBJ_NO  IN (SELECT DISTINCT  CONTRACT_NO FROM  dbo.CONTRACT_M WHERE STATUS NOT IN ('Completed','Withdraw') AND IS_LATEST=1 )
+
+               ";
+                wf_old_task = context.Database.SqlQuery<WF_TASK>(sql).ToList();
+
                 wf_old_task = wf_old_task.Where(m => contract_M_no.Contains(m.OBJ_NO.ToLower().Trim())).ToList();
                 //wf_old_task = context.WF_TASK.ToList().Where(m => contract_M_uid_str.Contains(new Guid(m.UID)) & m.STATE != null).ToList();
 
@@ -1855,37 +2236,161 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                 {
 
                     WfTask model_WfTask_History = new WfTask();
-                    model_WfTask_History.WfTask_UID = new Guid(item.UID);
-                    model_WfTask_History.Module_UID = module_uid;
-                    model_WfTask_History.Obj_No = item.OBJ_NO.Trim();
-                    model_WfTask_History.Task_Name = item.TASK;
-                    model_WfTask_History.Task_Role = item.ROLE;
-                    model_WfTask_History.Task_Owner = users.Where(m => m.User_NTID.ToLower() == item.OWNER.Trim().ToLower()).FirstOrDefault().Users_UID;
-                    model_WfTask_History.State = item.STATE;
-                    model_WfTask_History.Comments = item.COMMENTS;
-                    model_WfTask_History.Assigned_Date = Convert.ToDateTime(item.ASSIGN_DATETIME);
-                    //model_WfTask_History.Completed_Date = Convert.ToDateTime(item.COMPLETE_DATETIME);
-                    model_WfTask_History.Return_Times = Convert.ToInt32(item.REVIEW_LOOP);
-                    if (!string.IsNullOrEmpty(item.DELEGATE_FROM))
+                    var newUsers = users.Where(m => m.User_NTID.ToLower() == item.OWNER.Trim().ToLower()).FirstOrDefault();
+                    if (newUsers != null)
                     {
-                        model_WfTask_History.Delegation_From_UID = users.Where(m => m.User_NTID.Trim().ToLower() == item.DELEGATE_FROM.Trim().ToLower()).FirstOrDefault().Users_UID;
+                        model_WfTask_History.WfTask_UID = new Guid(item.UID);
+                        model_WfTask_History.Module_UID = module_uid;
+                        model_WfTask_History.Obj_No = item.OBJ_NO.Trim();
+                        model_WfTask_History.Task_Name = item.TASK;
+                        model_WfTask_History.Task_Role = GetRoleName(item.ROLE);
+                        model_WfTask_History.Task_Owner = newUsers.Users_UID;
+                        model_WfTask_History.State = item.STATE;
+                        //model_WfTask_History.Comments = item.COMMENTS;
+                        if (!string.IsNullOrEmpty(item.COMMENTS))
+                        {
+                            if (item.COMMENTS.Length < 500)
+                            {
+                                model_WfTask_History.Comments = item.COMMENTS;
+                            }
+                            else
+                            {
+
+                                model_WfTask_History.Comments = item.COMMENTS.Substring(0, 500);
+                            }
+                        }
+                        model_WfTask_History.Assigned_Date = Convert.ToDateTime(item.ASSIGN_DATETIME);
+                        model_WfTask_History.Remark = item.REMARK;
+                        model_WfTask_History.Completed_Date = item.COMPLETE_DATETIME;
+                        model_WfTask_History.Return_Times = Convert.ToInt32(item.REVIEW_LOOP);
+                        if (!string.IsNullOrEmpty(item.DELEGATE_FROM))
+                        {
+                            model_WfTask_History.Delegation_From_UID = users.Where(m => m.User_NTID.Trim().ToLower() == item.DELEGATE_FROM.Trim().ToLower()).FirstOrDefault().Users_UID;
+                        }
+                        model_WfTask_History.Resubmit_Routing = null;
+                        WfTask_list.Add(model_WfTask_History);
                     }
 
 
-                    model_WfTask_History.Resubmit_Routing = null;
-                    WfTask_list.Add(model_WfTask_History);
 
                 }
-                context.WfTask.AddRange(WfTask_list);
+                BulkInsert(GetConnectString(), "WfTask", WfTask_list);
+            }
+            endMethodName("Insert_Tb_WfTask");
+
+        }
+
+        public static void Update_WFTask()
+        {
+            starMethodName("Update_WFTask");
+            using (var context = new SPP_MVC_Entities())
+            {
+                var del_sql = string.Format( @"
+                
+UPDATE WfTask  SET  State='Cancel' , Comments='Canceled by System Admin, due to E-Contract 1.0 data migration to E-Contract 2.0.',
+Completed_Date=GETDATE() WHERE WfTask_UID IN
+(
+SELECT WfTask_UID FROM  dbo.WfTask WHERE Task_Name='Review' AND (Task_Role <> 'OPM'  AND  Task_Role<>'Function Manager I' AND Task_Role<>'Function Manager II') AND State IS NULL  AND Module_UID='{0}'  
+)
+
+              ",module_uid);
+
+                var insert_sql = @"
+SELECT  NEWID() AS WfTask_UID ,
+        t.*
+FROM    ( SELECT DISTINCT
+                    a.[Module_UID] ,
+                    a.[Obj_No] ,
+                    a.[Task_Name] ,
+                    c.WfTask_Role AS Task_Role ,
+                    c.Reviewer_UID AS Task_Owner ,
+                    a.[State] ,
+                    a.[Comments] ,
+                    a.[Assigned_Date] ,
+                    a.[Completed_Date] ,
+                    a.[Return_Times] ,
+                    a.[Delegation_From_UID] ,
+                    a.[Resubmit_Routing] ,
+                    a.[Remark]
+          FROM      dbo.WfTask a
+          LEFT JOIN dbo.Contract_M b ON a.Obj_No = b.Contract_No
+          LEFT JOIN dbo.Contract_WfTeam c ON b.Applicant_UID = c.Submitter_UID
+          WHERE     a.Task_Name = 'Review' AND (
+                    a.Task_Role <> 'OPM' AND a.Task_Role <> 'Function Manager I' AND a.Task_Role <> 'Function Manager II' AND  a.State IS NULL ) AND c.WfTask_Role = 'Function Manager I' ) t
+                  
+";
+
+                var new_wftask = context.Database.SqlQuery<WfTask>(insert_sql).ToList();
+                context.WfTask.AddRange(new_wftask);
+                context.Database.ExecuteSqlCommand(del_sql);
+                context.SaveChanges();
+
+
+            }
+            endMethodName("Update_WFTask");
+        }
+
+        public static void Update_Tb_Contract_Attachment()
+        {
+            starMethodName("Update_Tb_Contract_Attachment");
+            string updatesql = @"
+
+           ;WITH cte_one
+           AS 
+           (
+           SELECT  Contract_Attachment_UID,Display_File_Name FROM 
+           (
+           SELECT  a.Contract_Attachment_UID ,a.Contract_M_UID , a.Attachment_Type AS  Attachment_Type , RTRIM(b.Contract_No)+'_'+ b.Contractor+'_'+b.CONTRACT_NAME+'_Draft Version'+ '.'+REVERSE(SUBSTRING(REVERSE(a.Original_File_Name), 0, CHARINDEX('.', REVERSE(Original_File_Name))))  AS Display_File_Name
+           ,ROW_NUMBER() OVER (PARTITION BY a.Contract_M_UID,a.Attachment_Type ORDER BY GETDATE() ) AS rn 
+            FROM Contract_Attachment a
+           INNER JOIN Contract_M b
+           ON a.Contract_M_UID =b.Contract_M_UID AND a.Attachment_Type=1
+           ) t WHERE t.rn=1
+           
+           ) 
+           UPDATE  a  SET a.Display_File_Name=b.Display_File_Name FROM   Contract_Attachment a INNER JOIN cte_one b ON a.Contract_Attachment_UID =b.Contract_Attachment_UID
+          
+           
+           
+           
+           ;WITH cte_two
+           AS
+           (
+           SELECT a.Contract_Attachment_UID , RTRIM(b.Contract_No)+'_'+ b.Contractor+'_'+b.CONTRACT_NAME+ '_Approval Version'+'.'+REVERSE(SUBSTRING(REVERSE(a.Original_File_Name), 0, CHARINDEX('.', REVERSE(Original_File_Name)))) AS Display_File_Name  FROM Contract_Attachment a
+           INNER JOIN Contract_M b
+           ON a.Contract_M_UID =b.Contract_M_UID
+           WHERE a.Attachment_Type=3
+           ) 
+           UPDATE  a  SET a.Display_File_Name=b.Display_File_Name FROM   Contract_Attachment a INNER JOIN cte_two b ON a.Contract_Attachment_UID =b.Contract_Attachment_UID
+           
+          
+           ;WITH cte_three
+           AS
+           (
+           SELECT a.Contract_Attachment_UID , RTRIM(b.Contract_No)+'_'+ b.Contractor+'_'+b.CONTRACT_NAME+ '_Final Version'+'.'+REVERSE(SUBSTRING(REVERSE(a.Original_File_Name), 0, CHARINDEX('.', REVERSE(Original_File_Name)))) AS Display_File_Name  FROM Contract_Attachment a
+           INNER JOIN Contract_M b
+           ON a.Contract_M_UID =b.Contract_M_UID
+           WHERE a.Attachment_Type=4
+           )
+           UPDATE  a  SET a.Display_File_Name=b.Display_File_Name FROM   Contract_Attachment a INNER JOIN cte_three b ON a.Contract_Attachment_UID =b.Contract_Attachment_UID
+";
+
+      
+
+            using (var context = new SPP_MVC_Entities())
+            {
+                context.Database.ExecuteSqlCommand(updatesql);
                 context.SaveChanges();
 
             }
+            starMethodName("Update_Tb_Contract_Attachment");
 
 
         }
 
         public static void Insert_Tb_WfTask_History()
         {
+            starMethodName("Insert_Tb_WfTask_History");
             List<string> contract_M_no = new List<string>();
             List<Users> users = new List<Users>();
             using (var context = new SPP_MVC_Entities())
@@ -1899,36 +2404,33 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
             using (var context = new SPP_ProductionEntities())
             {
 
-                //context.Database.CommandTimeout = 3600 * 2;
-                //wf_old_task = context.WF_TASK.Where(m => !string.IsNullOrEmpty(m.STATE)).ToList();
-                //var sql = @"SELECT * FROM dbo.WF_TASK WHERE  STATE IS NOT NULL AND  COMPLETE_DATETIME IS NOT NULL AND  ASSIGN_DATETIME IS NOT NULL  ";
+                //var sql = @"
+                //            SELECT [UID]
+                //                  ,LTRIM(RTRIM([OBJ_NO])) AS [OBJ_NO]
+                //                  ,[TASK]
+                //                  ,[ROLE]
+                //                  ,[OWNER]
+                //                  ,[STATE]
+                //                  ,[COMMENTS]
+                //                  ,[ASSIGN_DATETIME]
+                //                  ,[COMPLETE_DATETIME]
+                //                  ,[REVIEW_LOOP]
+                //                  ,[REMARK]
+                //                  ,[DELEGATE_FROM]
+                //                  ,[Send_Mail_Date]
+                //              FROM [dbo].[WF_TASK]  
+                //            WHERE  STATE IS NOT NULL AND  COMPLETE_DATETIME IS NOT NULL AND  ASSIGN_DATETIME IS NOT NULL  
+                //                           ";
 
                 var sql = @"
-                            SELECT [UID]
-                                  ,LTRIM(RTRIM([OBJ_NO])) AS [OBJ_NO]
-                                  ,[TASK]
-                                  ,[ROLE]
-                                  ,[OWNER]
-                                  ,[STATE]
-                                  ,[COMMENTS]
-                                  ,[ASSIGN_DATETIME]
-                                  ,[COMPLETE_DATETIME]
-                                  ,[REVIEW_LOOP]
-                                  ,[REMARK]
-                                  ,[DELEGATE_FROM]
-                                  ,[Send_Mail_Date]
-                              FROM [dbo].[WF_TASK]  
-                            WHERE  STATE IS NOT NULL AND  COMPLETE_DATETIME IS NOT NULL AND  ASSIGN_DATETIME IS NOT NULL  
-                                           ";
+                         SELECT * FROM dbo.WF_TASK WHERE
+                         OBJ_NO  IN (SELECT DISTINCT  CONTRACT_NO FROM  dbo.CONTRACT_M WHERE STATUS  IN ('Completed','Withdraw') AND IS_LATEST=1 )
+                         ";
 
                 wf_old_task = context.Database.SqlQuery<WF_TASK>(sql).ToList();
-                //wf_old_task = context.Database.SqlQuery<WF_TASK>(sql).Where(m=>m.OBJ_NO== "09021608007").ToList();
-
-                //wf_old_task = context.WF_TASK.Where(m => contract_M_no.Contains(m.OBJ_NO.ToLower())).ToList();
-                //wf_old_task = context.WF_TASK.ToList().Where(m => contract_M_uid_str.Contains(new .uid(m.UID)) & m.STATE != null).ToList();
 
 
-          
+
 
             }
 
@@ -1939,73 +2441,88 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
 
                 foreach (var item in wf_old_task)
                 {
-                    if (contract_M_no.Contains(item.OBJ_NO))
+                    //if (contract_M_no.Contains(item.OBJ_NO.ToLower().Trim()))
+                    //{
+                    var newuser = users.Where(m => m.User_NTID.ToLower().Trim() == item.OWNER.ToLower().Trim()).FirstOrDefault();
+                    if (newuser != null)
                     {
-                        var user = users.Where(m => m.User_NTID.ToLower().Trim() == item.OWNER.ToLower().Trim()).FirstOrDefault();
-                        if (user != null)
+
+                        WfTask_History model_WfTask_History = new WfTask_History();
+
+                        Guid guid;
+                        try
                         {
-                            WfTask_History model_WfTask_History = new WfTask_History();
-                            model_WfTask_History.WfTask_History_UID = new Guid(item.UID);
-                            model_WfTask_History.Module_UID = module_uid;
-                            model_WfTask_History.Obj_No = item.OBJ_NO.Trim();
-                            model_WfTask_History.Task_Name = item.TASK;
-                            model_WfTask_History.Task_Role = item.ROLE;
-                            model_WfTask_History.Task_Owner = users.Where(m => m.User_NTID.ToLower().Trim() == item.OWNER.ToLower().Trim()).FirstOrDefault().Users_UID;
-                            model_WfTask_History.State = item.STATE;
-                            if (!string.IsNullOrEmpty(item.COMMENTS))
+                            guid = new Guid(item.UID);
+                        }
+                        catch
+                        {
+                            guid = Guid.NewGuid();
+                        }
+                        model_WfTask_History.WfTask_History_UID = guid;
+                        model_WfTask_History.Module_UID = module_uid;
+                        model_WfTask_History.Obj_No = item.OBJ_NO.Trim();
+                        model_WfTask_History.Task_Name = item.TASK;
+                        model_WfTask_History.Task_Role = GetRoleName(item.ROLE);
+                        model_WfTask_History.Task_Owner = users.Where(m => m.User_NTID.ToLower().Trim() == item.OWNER.ToLower().Trim()).FirstOrDefault().Users_UID;
+                        model_WfTask_History.State = item.STATE;
+                        if (!string.IsNullOrEmpty(item.COMMENTS))
+                        {
+                            if (item.COMMENTS.Length < 500)
                             {
-                                if (item.COMMENTS.Length < 500)
-                                {
-                                    model_WfTask_History.Comments = item.COMMENTS;
-                                }
-                                else
-                                {
-
-                                    model_WfTask_History.Comments = item.COMMENTS.Substring(0, 500);
-                                }
+                                model_WfTask_History.Comments = item.COMMENTS;
                             }
-
-
-                            model_WfTask_History.Assigned_Date = Convert.ToDateTime(item.ASSIGN_DATETIME);
-                            model_WfTask_History.Completed_Date = Convert.ToDateTime(item.COMPLETE_DATETIME);
-                            model_WfTask_History.Return_Times = Convert.ToInt32(item.REVIEW_LOOP);
-                            if (item.DELEGATE_FROM != null && !string.IsNullOrEmpty(item.DELEGATE_FROM))
+                            else
                             {
-                                model_WfTask_History.Delegation_From_UID = users.Where(m => m.User_NTID.ToLower().Trim() == item.DELEGATE_FROM.ToLower().Trim()).FirstOrDefault().Users_UID;
-                            }
 
-                            model_WfTask_History.Backup_Date = DateTime.Now;
-                            model_WfTask_History.Resubmit_Routing = null;
-                            WfTask_History_list.Add(model_WfTask_History);
+                                model_WfTask_History.Comments = item.COMMENTS.Substring(0, 500);
+                            }
                         }
 
+
+                        model_WfTask_History.Assigned_Date = Convert.ToDateTime(item.ASSIGN_DATETIME);
+                        model_WfTask_History.Completed_Date = Convert.ToDateTime(item.COMPLETE_DATETIME);
+                        model_WfTask_History.Return_Times = Convert.ToInt32(item.REVIEW_LOOP);
+                        if (item.DELEGATE_FROM != null && !string.IsNullOrEmpty(item.DELEGATE_FROM))
+                        {
+                            model_WfTask_History.Delegation_From_UID = newuser.Users_UID;
+                        }
+
+                        model_WfTask_History.Backup_Date = DateTime.Now;
+                        model_WfTask_History.Resubmit_Routing = null;
+                        model_WfTask_History.Remark = item.REMARK;
+                        WfTask_History_list.Add(model_WfTask_History);
 
                     }
 
 
-                }
-                context.WfTask_History.AddRange(WfTask_History_list);
+                    //}
 
 
-                try
-                {
-                    context.SaveChanges();
                 }
-                catch (System.Data.Entity.Validation.DbEntityValidationException ex)
-                {
-                    var Re = string.Empty;
-                    foreach (var errors in ex.EntityValidationErrors)
-                    {
-                        foreach (var item in errors.ValidationErrors)
-                        {
-                            Re = Re + (item.ErrorMessage + item.PropertyName);
-                        }
-                    }
+                BulkInsert(GetConnectString(), "WfTask_History", WfTask_History_list);
 
-                }
+                //context.WfTask_History.AddRange(WfTask_History_list);
+
+
+                //try
+                //{
+                //    context.SaveChanges();
+                //}
+                //catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+                //{
+                //    var Re = string.Empty;
+                //    foreach (var errors in ex.EntityValidationErrors)
+                //    {
+                //        foreach (var item in errors.ValidationErrors)
+                //        {
+                //            Re = Re + (item.ErrorMessage + item.PropertyName);
+                //        }
+                //    }
+
+                //}
 
             }
-
+            endMethodName("Insert_Tb_WfTask_History");
 
         }
 
@@ -2015,7 +2532,24 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
             List<WF_TASK_DELAY_CONFIG> delay_config = new List<WF_TASK_DELAY_CONFIG>();
             using (var context = new SPP_ProductionEntities())
             {
+                //delay_config = context.WF_TASK_DELAY_CONFIG.Where(m => m.ROLE.Trim() != "OPA1" && m.ROLE.Trim() != "Applicant2").ToList();
+
+
                 delay_config = context.WF_TASK_DELAY_CONFIG.ToList();
+                foreach (var item in delay_config)
+                {
+                    if (item.ROLE.Trim() == "Applicant2" && item.TASK == "Recheck")
+                    {
+                        item.ROLE = ContractConsts.RoleName.Applicant;
+                        item.TASK = ContractConsts.Task.File_In;
+                    }
+
+                    if (item.ROLE.Trim() == "Applicant" && item.TASK == "Recheck")
+                    {
+                        item.ROLE = ContractConsts.RoleName.Applicant;
+                        item.TASK = ContractConsts.Task.Submit;
+                    }
+                }
             }
 
             List<WfTaskDelaySetting> delay_setting_list = new List<WfTaskDelaySetting>();
@@ -2027,10 +2561,32 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                     WfTaskDelaySetting model_WfTaskDelaySetting = new WfTaskDelaySetting();
                     model_WfTaskDelaySetting.WfTaskDelaySetting_UID = Guid.NewGuid();
                     model_WfTaskDelaySetting.Module_UID = module_uid;
-                    model_WfTaskDelaySetting.Task_Name = String.Empty;
-                    model_WfTaskDelaySetting.Task_Role = item.ROLE;
+                    model_WfTaskDelaySetting.Task_Name = item.TASK;
+                    model_WfTaskDelaySetting.Task_Role = GetRoleName(item.ROLE.Trim());
                     model_WfTaskDelaySetting.Delay_Days = Convert.ToInt32(item.DELAY_DAYS);
                     model_WfTaskDelaySetting.Reminder = item.REMINDER;
+
+                    if (!string.IsNullOrEmpty(item.REMINDER))
+                    {
+                        var list = item.REMINDER.Split(',').ToList();
+
+
+                        for (int i = 0; i < list.Count; i++)
+                        {
+                            if (string.IsNullOrEmpty(list[i].ToString().Trim()))
+                            {
+                                list.Remove(list[i]);
+                            }
+                            else
+                            {
+                                list[i] = GetRoleName(list[i].ToString().Trim());
+                            }
+
+                        }
+
+                        model_WfTaskDelaySetting.Reminder = string.Join(",", list);
+                    }
+
                     model_WfTaskDelaySetting.Modified_UID = modified_guid;
                     model_WfTaskDelaySetting.Modified_Date = DateTime.Now;
                     model_WfTaskDelaySetting.Modified_Remarks = item.REMARKS;
@@ -2230,11 +2786,6 @@ WHERE Company_UID=(SELECT  TOP 1 Company_UID FROM  ContractTemplate WHERE Compan
 
         #endregion
 
-
-
     }
-
-
-    //SITE_CODE DEPARTMENT  Company_Code Department_UID, Company_UID
 
 }
