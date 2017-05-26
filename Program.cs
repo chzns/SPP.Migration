@@ -510,10 +510,12 @@ namespace SPP.Migration
             //Insert_Contract_M();
             //Insert_Tb_Contract_Attachment();
             //Update_Tb_Contract_Attachment();
-            Insert_Tb_WfTask();
-            Update_WFTask();
-            Insert_Tb_WfTask_History();
-            Insert_Tb_Contract_WfTeam();
+            //Insert_Tb_WfTask();
+            //Update_WFTask();
+            //Insert_Tb_WfTask_History();
+            //Insert_Tb_Contract_WfTeam();
+            //Insert_Tb_WfTaskDelaySetting();
+            Insert_Tb_ContractTemplate();
             overMethodName();
 
 
@@ -1090,16 +1092,34 @@ and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
             using (var context = new SPP_ProductionEntities())
             {
                 //过滤重复部门的表单
+                //                var sql = @"
+                //SELECT * FROM
+                //(
+                //SELECT [CONTRACT_TYPE_UID], [TYPE_GROUP], [TYPE_CODE], [TEMPLATE_NAME], [TEMPLATE_PATH], [TEMPLATE_DESC], [VERSION], [DEL_MK], [CREATOR], [CREATE_DATE], [MODIFIER], [MODIFY_DATE], [PLANT_LOCATION], [PLANT_TYPE], [ONLYLEGALREVIEW], [PERIOD_REQUIRED], [TEMPLATE_NOTE], [ISFINANCEREVIEW], [ISPURREVIEW], [ISSCMREVIEW], [TYPE_CATEGORY] 
+                //,b.CCODE,'' AS Company_UID,'' AS ContractType_M_UID,ROW_NUMBER() OVER (PARTITION BY  TYPE_CODE,CCODE,TEMPLATE_NAME ORDER BY GETDATE()) AS RN
+                // FROM (SELECT * FROM  dbo.CONTRACT_TYPE WHERE LEN(TEMPLATE_NAME)>10 ) a
+                //LEFT JOIN dbo.SYSTEM_PLANT b
+                //ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
+                //) t WHERE t.RN=1 AND t.DEL_MK='N'
+
+
+
+
+                //           ";
+
                 var sql = @"
 SELECT * FROM
 (
 SELECT [CONTRACT_TYPE_UID], [TYPE_GROUP], [TYPE_CODE], [TEMPLATE_NAME], [TEMPLATE_PATH], [TEMPLATE_DESC], [VERSION], [DEL_MK], [CREATOR], [CREATE_DATE], [MODIFIER], [MODIFY_DATE], [PLANT_LOCATION], [PLANT_TYPE], [ONLYLEGALREVIEW], [PERIOD_REQUIRED], [TEMPLATE_NOTE], [ISFINANCEREVIEW], [ISPURREVIEW], [ISSCMREVIEW], [TYPE_CATEGORY] 
-,b.CCODE,'' AS Company_UID,'' AS ContractType_M_UID,ROW_NUMBER() OVER (PARTITION BY  TYPE_CODE,CCODE,TEMPLATE_NAME ORDER BY GETDATE()) AS RN
+,b.CCODE,'' AS Company_UID,'' AS ContractType_M_UID,ROW_NUMBER() OVER (PARTITION BY  TYPE_CODE,CCODE,TEMPLATE_DESC ORDER BY GETDATE()) AS RN
  FROM (SELECT * FROM  dbo.CONTRACT_TYPE WHERE LEN(TEMPLATE_NAME)>10 ) a
 LEFT JOIN dbo.SYSTEM_PLANT b
 ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
-) t WHERE t.RN=1
-           ";
+) t WHERE t.RN=1 AND t.DEL_MK='N'
+
+
+";
+
                 insert_tb_contracttemplate_1 = context.Database.SqlQuery<Insert_Tb_ContractTemplate_1>(sql).ToList();
 
                 //赋值Company_UID、CONTRACT_TYPE_UID
@@ -1113,11 +1133,11 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
 
             using (var context = new SPP_MVC_Entities())
             {
+                var users = context.Users.ToList();
+
                 List<ContractTemplate> ContractTemplate_list = new List<ContractTemplate>();
                 foreach (var item in insert_tb_contracttemplate_1)
                 {
-
-
 
                     ContractTemplate model_ContractTemplate = new ContractTemplate();
                     model_ContractTemplate.ContractTemplate_UID = Guid.NewGuid();
@@ -1125,14 +1145,12 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     model_ContractTemplate.ContractType_D_UID = new Guid(item.CONTRACT_TYPE_UID);
                     model_ContractTemplate.System_File_Name = "";
                     model_ContractTemplate.Original_File_Name = item.TEMPLATE_NAME;
-                    model_ContractTemplate.Display_File_Name = item.TEMPLATE_NAME;
+                    //model_ContractTemplate.Display_File_Name = item.TEMPLATE_NAME;//-------------
+
+                    model_ContractTemplate.Display_File_Name = item.TEMPLATE_DESC+".doc";//-------------需求2
                     model_ContractTemplate.File_Size = 0;
                     model_ContractTemplate.File_Path = "";
                     model_ContractTemplate.Tempkey = Guid.Empty;
-
-
-
-
 
                     if (item.DEL_MK == "Y")
                     {
@@ -1142,8 +1160,17 @@ ON a.PLANT_LOCATION=b.LOCATION AND  a.PLANT_TYPE=b.TYPE
                     {
                         model_ContractTemplate.Is_Enable = true;
                     }
-                    model_ContractTemplate.Modified_UID = modified_guid;
-                    model_ContractTemplate.Modified_Date = DateTime.Now;
+                    if (!string.IsNullOrEmpty(item.MODIFIER))
+                    {
+                        model_ContractTemplate.Modified_UID = users.Where(m => m.User_NTID == item.MODIFIER).FirstOrDefault().Users_UID;
+                    }
+                    else
+                    {
+                        model_ContractTemplate.Modified_UID = modified_guid;//----
+                    }
+                   
+                    //model_ContractTemplate.Modified_Date = DateTime.Now;
+                    model_ContractTemplate.Modified_Date = item.MODIFY_DATE;//-----需求3
                     model_ContractTemplate.Modified_Remarks = item.TEMPLATE_DESC;
 
                     var newFileName = model_ContractTemplate.Modified_Date.ToString("yyMMddhhmmss") + DateTime.Now.Millisecond.ToString() + ".x";
@@ -2658,73 +2685,179 @@ FROM    ( SELECT DISTINCT
         public static void Insert_Tb_WfTaskDelaySetting()
         {
 
-            List<WF_TASK_DELAY_CONFIG> delay_config = new List<WF_TASK_DELAY_CONFIG>();
-            using (var context = new SPP_ProductionEntities())
-            {
-                //delay_config = context.WF_TASK_DELAY_CONFIG.Where(m => m.ROLE.Trim() != "OPA1" && m.ROLE.Trim() != "Applicant2").ToList();
+            string sql = @"
+
+delete from WfTaskDelaySetting
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('DB491B44-5ADD-46F8-AD8B-9B2A6F3DB739', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'File In', 'File In PIC', 7, 'Applicant,Function Manager I', '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract DCC File In, notify applicant and applicant''s FM')
 
 
-                delay_config = context.WF_TASK_DELAY_CONFIG.ToList();
-                foreach (var item in delay_config)
-                {
-                    if (item.ROLE.Trim() == "Applicant2" && item.TASK == "Recheck")
-                    {
-                        item.ROLE = ContractConsts.RoleName.Applicant;
-                        item.TASK = ContractConsts.Task.File_In;
-                    }
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('CB86F4D1-1CA7-48A0-834C-62D7FECB24BD', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'ReadyToStamp', 'OP Assistant', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract OP Assistant ready to stamp')
 
-                    if (item.ROLE.Trim() == "Applicant" && item.TASK == "Recheck")
-                    {
-                        item.ROLE = ContractConsts.RoleName.Applicant;
-                        item.TASK = ContractConsts.Task.Submit;
-                    }
-                }
-            }
 
-            List<WfTaskDelaySetting> delay_setting_list = new List<WfTaskDelaySetting>();
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('F362B6C9-E79F-4995-B975-6AD214636D65', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Finance I', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Finance Manager Review')
 
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('19B00EBF-BBA9-4940-B392-FC70CE499C92', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Finance II', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Finance Controller Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('F07774E6-9282-46A2-99AC-8A845A49B220', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Function Manager I', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Function Manager Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('3AB59CCE-0C72-445D-8172-338E71E14814', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Function Manager II', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Function Manager II Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('514176F7-0F7F-4FB5-BF77-0A4B418D3CFE', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Legal Approver I', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Legal Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('D0F8657E-0A8A-48A7-9B73-D19218F0FD62', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Legal Approver II', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Legal II Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('A7F5D170-3821-42A3-B1A8-997C3FAA594E', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Legal Customer ABC', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Legal Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('5B03634D-2880-4B72-857E-7F36BEDD1F46', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Legal Customer I', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Legal Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('CA5E04E0-2B2B-4275-9510-083C2D7ADA1E', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Legal Customer II', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Legal Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('6CD7D374-69FC-45D9-BE33-F5C6BA641113', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Legal Customer NDA', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Legal Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('0A0E40AE-6CBF-4E12-8708-A329BD2251DF', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Legal Service I', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Legal Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('D519D2EA-7052-4058-9AF4-C11A1766DB54', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Legal Service II', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Legal Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('277DC484-1C73-4C1D-9FB1-6BF1AE0DFB26', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'OPD', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract OPM/OPD Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('945D1BEC-E023-441E-9769-39F8605FFCA6', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'OPM', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract OPM/OPD Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('18C6F3F6-122C-4F9F-99F3-E7C0484C42B5', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Purchasing I', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Purchasing Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('D7ABE05A-6348-4F6A-8686-FD473D5E5432', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'Purchasing II', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Purchasing Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('FA2B84A2-7916-4397-BA60-ED40CBC57080', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'SCM I', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract SCM Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('BA5D5D63-D82B-44B1-89B5-2871A132F3B7', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Review', 'SCM II', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract SCM Review')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('243AEB97-DB57-4E52-B453-D1B9D690DA31', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'StampingDone', 'OP Assistant', 3, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract OP Assistant stamping')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('32256176-FB6A-4DBD-ACF8-AAB022D3C64B', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Submit', 'Applicant', 30, NULL, '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'Contract State is Rejected or Revoked')
+
+
+INSERT INTO dbo.WfTaskDelaySetting (WfTaskDelaySetting_UID, Module_UID, Task_Name, Task_Role, Delay_Days, Reminder, Modified_UID, Modified_Date, Modified_Remarks)
+VALUES ('0E3D1462-E847-4163-BFD1-C7E679341787', '39326F1E-54C6-4ED7-9D2D-A0415F8321D3', 'Upload', 'Upload PIC', 7, 'Upload PIC,Upload PIC FM', '0B08C006-5AB5-E611-83F5-005056BF221C', '2017-05-17 13:52:16.947', 'E-Contract Applicant/OPA/DCC Upload Final Verion')
+
+
+        
+";
+
+            //List<WF_TASK_DELAY_CONFIG> delay_config = new List<WF_TASK_DELAY_CONFIG>();
+            //using (var context = new SPP_ProductionEntities())
+            //{
+            //    //delay_config = context.WF_TASK_DELAY_CONFIG.Where(m => m.ROLE.Trim() != "OPA1" && m.ROLE.Trim() != "Applicant2").ToList();
+
+
+            //    delay_config = context.WF_TASK_DELAY_CONFIG.ToList();
+            //    foreach (var item in delay_config)
+            //    {
+            //        if (item.ROLE.Trim() == "Applicant2" && item.TASK == "Recheck")
+            //        {
+            //            item.ROLE = ContractConsts.RoleName.Applicant;
+            //            item.TASK = ContractConsts.Task.File_In;
+            //        }
+
+            //        if (item.ROLE.Trim() == "Applicant" && item.TASK == "Recheck")
+            //        {
+            //            item.ROLE = ContractConsts.RoleName.Applicant;
+            //            item.TASK = ContractConsts.Task.Submit;
+            //        }
+            //    }
+            //}
+
+            //List<WfTaskDelaySetting> delay_setting_list = new List<WfTaskDelaySetting>();
+
+            starMethodName("Insert_Tb_WfTaskDelaySetting");
             using (var context = new SPP_MVC_Entities())
             {
-                foreach (var item in delay_config)
-                {
-                    WfTaskDelaySetting model_WfTaskDelaySetting = new WfTaskDelaySetting();
-                    model_WfTaskDelaySetting.WfTaskDelaySetting_UID = Guid.NewGuid();
-                    model_WfTaskDelaySetting.Module_UID = module_uid;
-                    model_WfTaskDelaySetting.Task_Name = item.TASK;
-                    model_WfTaskDelaySetting.Task_Role = GetRoleName(item.ROLE.Trim());
-                    model_WfTaskDelaySetting.Delay_Days = Convert.ToInt32(item.DELAY_DAYS);
-                    model_WfTaskDelaySetting.Reminder = item.REMINDER;
-
-                    if (!string.IsNullOrEmpty(item.REMINDER))
-                    {
-                        var list = item.REMINDER.Split(',').ToList();
-
-
-                        for (int i = 0; i < list.Count; i++)
-                        {
-                            if (string.IsNullOrEmpty(list[i].ToString().Trim()))
-                            {
-                                list.Remove(list[i]);
-                            }
-                            else
-                            {
-                                list[i] = GetRoleName(list[i].ToString().Trim());
-                            }
-
-                        }
-
-                        model_WfTaskDelaySetting.Reminder = string.Join(",", list);
-                    }
-
-                    model_WfTaskDelaySetting.Modified_UID = modified_guid;
-                    model_WfTaskDelaySetting.Modified_Date = DateTime.Now;
-                    model_WfTaskDelaySetting.Modified_Remarks = item.REMARKS;
-                    delay_setting_list.Add(model_WfTaskDelaySetting);
-
-                }
-                context.WfTaskDelaySetting.AddRange(delay_setting_list);
+                context.Database.ExecuteSqlCommand(sql);
                 context.SaveChanges();
+
+                //foreach (var item in delay_config)
+                //{
+                //    WfTaskDelaySetting model_WfTaskDelaySetting = new WfTaskDelaySetting();
+                //    model_WfTaskDelaySetting.WfTaskDelaySetting_UID = Guid.NewGuid();
+                //    model_WfTaskDelaySetting.Module_UID = module_uid;
+                //    model_WfTaskDelaySetting.Task_Name = item.TASK;
+                //    model_WfTaskDelaySetting.Task_Role = GetRoleName(item.ROLE.Trim());
+                //    model_WfTaskDelaySetting.Delay_Days = Convert.ToInt32(item.DELAY_DAYS);
+                //    model_WfTaskDelaySetting.Reminder = item.REMINDER;
+
+                //    if (!string.IsNullOrEmpty(item.REMINDER))
+                //    {
+                //        var list = item.REMINDER.Split(',').ToList();
+
+
+                //        for (int i = 0; i < list.Count; i++)
+                //        {
+                //            if (string.IsNullOrEmpty(list[i].ToString().Trim()))
+                //            {
+                //                list.Remove(list[i]);
+                //            }
+                //            else
+                //            {
+                //                list[i] = GetRoleName(list[i].ToString().Trim());
+                //            }
+
+                //        }
+
+                //        model_WfTaskDelaySetting.Reminder = string.Join(",", list);
+                //    }
+
+                //    model_WfTaskDelaySetting.Modified_UID = modified_guid;
+                //    model_WfTaskDelaySetting.Modified_Date = DateTime.Now;
+                //    model_WfTaskDelaySetting.Modified_Remarks = item.REMARKS;
+                //    delay_setting_list.Add(model_WfTaskDelaySetting);
+
+                //}
+                //context.WfTaskDelaySetting.AddRange(delay_setting_list);
+                //context.SaveChanges();
             }
+
+            endMethodName("Insert_Tb_WfTaskDelaySetting");
+
 
         }
 
