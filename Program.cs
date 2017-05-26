@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
 using System.Data.Entity;
+using System.IO;
 
 namespace SPP.Migration
 {
@@ -297,13 +298,131 @@ namespace SPP.Migration
 
         public static void starMethodName(string name)
         {
-            Console.WriteLine(name + DateTime.Now.ToString() + " 开始运行.");
+            Console.WriteLine(Runfunction(name) + " " + DateTime.Now.ToString() + " 开始运行.");
 
         }
 
         public static void endMethodName(string name)
         {
-            Console.WriteLine(name + DateTime.Now.ToString() + " 结束运行.");
+            Console.WriteLine(Runfunction(name) + " " + DateTime.Now.ToString() + " 结束运行.");
+        }
+
+        public static string Runfunction(string name)
+
+        {
+
+            string re = name;
+            switch (name)
+            {
+
+                default:
+                    break;
+                case
+                    "MigrationProduction":
+                    re =name+ "正在修正旧架构历史错误资料";
+                    break;
+                case
+                    "Insert_Tb_Users":
+                    re = name + "正在创建用户";
+                    break;
+                case
+                    "Insert_Tb_Company":
+                    re = name + "正在创建公司";
+                    break;
+                case
+                    "Insert_Tb_DepartMent":
+                    re = name + "正在创建部门";
+                    break;
+                case
+                    "Insert_Tb_Users_CompanyDepartment":
+                    re = name + "正在关联用户部门";
+                    break;
+                case
+                    "Insert_Tb_ContractType_M":
+                    re = name + "正在创建合约类型";
+                    break;
+                case
+                    "Insert_Tb_ContractType_D":
+                    re = name + "正在创建合约明细类型";
+                    break;
+                case
+                    "Insert_Tb_ContractTemplate":
+                    re = name + "正在创建合约模板";
+                    break;
+                case
+                    "Insert_TypeCode_Data":
+                    re = name + "正在创建一级联动表";
+                    break;
+                case
+                    "Insert_Tb_Module":
+                    re = name + "正在创建ModuleID";
+                    break;
+                case
+                    "Insert_Contract_M":
+                    re = name + "正在创建合约主表";
+                    break;
+                case
+                    "Insert_Tb_Contract_Attachment":
+                    re = name + "正在创建合约附件表";
+                    break;
+                case
+                    "Insert_Tb_Contract_WfTeam":
+                    re = name + "正在创建合约人员审批配置表";
+                    break;
+                case
+                    "Insert_Tb_WfTaskDelaySetting":
+                    re = name + "正在创建用户延期天数设定";
+                    break;
+                case
+                    "Insert_Tb_WfEmail_StopExpirationNotice":
+                    re = name + "正在创建用户邮件提醒";
+                    break;
+                case
+                    "Insert_Users_Role":
+                    re = name + "正在导入用户角色";
+                    break;
+                case
+                    "Insert_Tb_WfTask":
+                    re = name + "正在创建 WFTask";
+                    break;
+                case
+                    "Update_WFTask":
+                    re = name + "正在更新 WFTask";
+                    break;
+                case
+                    "Insert_Tb_WfTask_History":
+                    re = name + "正创建 Insert_Tb_WfTask_History";
+                    break;
+            }
+            return re;
+            //MigrationProduction();//正在修正旧架构历史错误资料
+            //Insert_Tb_Users();//创建用户
+            //Insert_Tb_Company();
+            //Insert_Tb_DepartMent();
+            //Insert_Tb_Users_CompanyDepartment();
+            //Insert_Tb_ContractType_M();
+            //Insert_Tb_ContractType_D();
+            //Insert_Tb_ContractTemplate();
+            //Contract_Attachment_ToCMD();//生成Contract_Attachment 拷贝指令
+            //Insert_TypeCode_Data();
+            ////Insert_Tb_Module();//导入ModuleID 信息
+            //Insert_Contract_M();
+
+            //////导入申请人权限
+            //Insert_Users_Role();
+            //Insert_Tb_Contract_Attachment();
+            //Update_Tb_Contract_Attachment();
+            //Insert_Tb_Contract_WfTeam();
+            //Insert_Tb_WfTaskDelaySetting();
+            //Insert_Tb_WfDelegation();
+            //Insert_Tb_WfDelegation_History();
+            //Insert_Tb_WfEmail_StopExpirationNotice();
+            //Insert_Tb_WfTask();
+            //Update_WFTask();
+            //Insert_Tb_WfTask_History();
+
+
+
         }
 
         public static void Delete_ALL()
@@ -381,55 +500,46 @@ namespace SPP.Migration
             //Insert_Users_Role();
             //Insert_Users_Role();
             //test_DataWarranty_End_Date
-            //Insert_Tb_Contract_WfTeam();
-
-
-
-
-
-            //Insert_Contract_M();
-
-            //Insert_Tb_Contract_Attachment();
-
-            //Insert_Tb_WfTask();
-
-            //Update_WFTask();
-
-            //Insert_Tb_WfTask_History();
-
-            Update_Tb_Contract_Attachment();
-
-            //Insert_Tb_WfTaskDelaySetting();
-
-            overMethodName();
-
 
             //Insert_Users_Role();
+            //Insert_Tb_WfTaskDelaySetting();
 
-            //Insert_Tb_WfTask();
-            //Update_WFTask();
-            //Insert_Tb_WfTask_History();
+
+            //======================
+
+            //Insert_Contract_M();
+            //Insert_Tb_Contract_Attachment();
+            //Update_Tb_Contract_Attachment();
+            Insert_Tb_WfTask();
+            Update_WFTask();
+            Insert_Tb_WfTask_History();
+            Insert_Tb_Contract_WfTeam();
+            overMethodName();
 
 
         }
 
         public static void migration()
         {
-            Insert_Tb_Users();
+            MigrationProduction();
+            //正在修正旧架构Proudction 历史错误资料
+            Insert_Tb_Users();//创建用户
             Insert_Tb_Company();
             Insert_Tb_DepartMent();
             Insert_Tb_Users_CompanyDepartment();
             Insert_Tb_ContractType_M();
             Insert_Tb_ContractType_D();
             Insert_Tb_ContractTemplate();
+           
             Insert_TypeCode_Data();
-            //Insert_Tb_Module();
+            //Insert_Tb_Module();//导入ModuleID 信息
             Insert_Contract_M();
 
             ////导入申请人权限
             Insert_Users_Role();
             Insert_Tb_Contract_Attachment();
             Update_Tb_Contract_Attachment();
+            Contract_Attachment_ToCMD();//生成Contract_Attachment 拷贝指令
             Insert_Tb_Contract_WfTeam();
             Insert_Tb_WfTaskDelaySetting();
             Insert_Tb_WfDelegation();
@@ -882,6 +992,19 @@ and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
             }
         }
 
+        private static string Legal_Customer = "Customer";//特殊1阶合约类型
+        private static string[] Legal_Customer_ABC = { "ABC Agreement (Customer)" };//只需要2ND_LEGAL_CUSTOMER
+        private static string Legal_Customer_ABC_ONE = "ABC Agreement (Customer)";//只需要LEGAL_CUSTOMER
+
+        private static string[] Legal_Service =
+    {
+"VMI/HUB (Customer)",
+"Customs/Shipping/Carriage/Courier/Logistic Agreement",
+"Hub/VMI Agreement (Supplier)"
+};//特殊类型合约需要两阶Legal审核
+
+        private static string Legal_Customer_NDA_ONE =  "NDA (Customer)" ;//只需要Legal_Customer_NDA 审核
+
         public static void Insert_Tb_ContractType_D()
         {
 
@@ -917,24 +1040,24 @@ and SYSTEM_PLANT.TYPE = SYSTEM_USER_PLANT.PLANT_TYPE
                     model_ContractType_D.Need_Legal_Customer = false;
                     model_ContractType_D.Need_Legal_Service = false;
 
-                    //if (item.TYPE_CODE.Trim() == Legal_Customer_ABC_ONE)
-                    //{
-                    //    model_ContractType_D.Need_Legal_CustomerABC = true;
-                    //}
-                    //if (item.TYPE_CODE.Trim() == Legal_Customer_NDA_ONE)
-                    //{
-                    //    model_ContractType_D.Need_Legal_CustomerNDA = true;
-                    //}
+                    if (item.TYPE_CODE.Trim() == Legal_Customer_ABC_ONE)
+                    {
+                        model_ContractType_D.Need_Legal_CustomerABC = true;
+                    }
+                    if (item.TYPE_CODE.Trim() == Legal_Customer_NDA_ONE)
+                    {
+                        model_ContractType_D.Need_Legal_CustomerNDA = true;
+                    }
 
-                    //if (item.TYPE_CATEGORY.Trim() == Legal_Customer)
-                    //{
-                    //    model_ContractType_D.Need_Legal_Customer = true;
-                    //}
+                    if (item.TYPE_CATEGORY.Trim() == Legal_Customer)
+                    {
+                        model_ContractType_D.Need_Legal_Customer = true;
+                    }
 
-                    //if (Legal_Service.Contains(item.TYPE_CATEGORY.Trim()) == true)
-                    //{
-                    //    model_ContractType_D.Need_Legal_Service = true;
-                    //}
+                    if (Legal_Service.Contains(item.TYPE_CATEGORY.Trim()) == true)
+                    {
+                        model_ContractType_D.Need_Legal_Service = true;
+                    }
 
                     model_ContractType_D.Is_Enable = true;
                     model_ContractType_D.Modified_UID = modified_guid;
@@ -1797,14 +1920,16 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                         model_Contract_WfTeam.Modified_Remarks = modify_remarks;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
-                        if (i > 0)
-                        {
-                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Purchasing_II;
-                        }
-                        else
-                        {
-                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Purchasing_I;
-                        }
+                        //if (i > 0)
+                        //{
+                        //    model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Purchasing_II;
+                        //}
+                        //else
+                        //{
+                        //    model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Purchasing_I;
+                        //}
+
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.Purchasing_I;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
                     }
                 }
@@ -1823,14 +1948,16 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                         model_Contract_WfTeam.Modified_UID = modified_guid;
                         model_Contract_WfTeam.Modified_Date = DateTime.Now;
                         model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-                        if (i > 0)
-                        {
-                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.SCM_II;
-                        }
-                        else
-                        {
-                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.SCM_I;
-                        }
+                        //if (i > 0)
+                        //{
+                        //    model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.SCM_II;
+                        //}
+                        //else
+                        //{
+                        //    model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.SCM_I;
+                        //}
+
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.SCM_I;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
@@ -2047,15 +2174,17 @@ WHERE   CONTRACT_M_UID IN ( SELECT DISTINCT CONTRACT_M_UID
                         model_Contract_WfTeam.Modified_UID = modified_guid;
                         model_Contract_WfTeam.Modified_Date = DateTime.Now;
                         model_Contract_WfTeam.Modified_Remarks = modify_remarks;
-                        if (i > 0)
-                        {
-                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.OPD;
-                        }
-                        else
-                        {
-                            model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.OPM;
+                        //if (i > 0)
+                        //{
+                        //    model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.OPD;
+                        //}
+                        //else
+                        //{
+                        //    model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.OPM;
 
-                        }
+                        //}
+
+                        model_Contract_WfTeam.WfTask_Role = ContractConsts.RoleName.OPM;
                         var user_uid = users.Where(m => m.User_NTID.ToLower() == array[i].ToString().Trim().ToLower()).FirstOrDefault().Users_UID;
                         model_Contract_WfTeam.Reviewer_UID = user_uid;
                         Contract_WfTeam_List.Add(model_Contract_WfTeam);
@@ -2260,7 +2389,7 @@ OBJ_NO  IN (SELECT DISTINCT  CONTRACT_NO FROM  dbo.CONTRACT_M WHERE STATUS NOT I
                             }
                         }
                         model_WfTask_History.Assigned_Date = Convert.ToDateTime(item.ASSIGN_DATETIME);
-                        model_WfTask_History.Remark = item.REMARK;
+                        model_WfTask_History.Remarks = item.REMARK;
                         model_WfTask_History.Completed_Date = item.COMPLETE_DATETIME;
                         model_WfTask_History.Return_Times = Convert.ToInt32(item.REVIEW_LOOP);
                         if (!string.IsNullOrEmpty(item.DELEGATE_FROM))
@@ -2285,7 +2414,7 @@ OBJ_NO  IN (SELECT DISTINCT  CONTRACT_NO FROM  dbo.CONTRACT_M WHERE STATUS NOT I
             starMethodName("Update_WFTask");
             using (var context = new SPP_MVC_Entities())
             {
-                var del_sql = string.Format( @"
+                var del_sql = string.Format(@"
                 
 UPDATE WfTask  SET  State='Cancel' , Comments='Canceled by System Admin, due to E-Contract 1.0 data migration to E-Contract 2.0.',
 Completed_Date=GETDATE() WHERE WfTask_UID IN
@@ -2293,7 +2422,7 @@ Completed_Date=GETDATE() WHERE WfTask_UID IN
 SELECT WfTask_UID FROM  dbo.WfTask WHERE Task_Name='Review' AND (Task_Role <> 'OPM'  AND  Task_Role<>'Function Manager I' AND Task_Role<>'Function Manager II') AND State IS NULL  AND Module_UID='{0}'  
 )
 
-              ",module_uid);
+              ", module_uid);
 
                 var insert_sql = @"
 SELECT  NEWID() AS WfTask_UID ,
@@ -2311,7 +2440,7 @@ FROM    ( SELECT DISTINCT
                     a.[Return_Times] ,
                     a.[Delegation_From_UID] ,
                     a.[Resubmit_Routing] ,
-                    a.[Remark]
+                    a.[Remarks]
           FROM      dbo.WfTask a
           LEFT JOIN dbo.Contract_M b ON a.Obj_No = b.Contract_No
           LEFT JOIN dbo.Contract_WfTeam c ON b.Applicant_UID = c.Submitter_UID
@@ -2375,7 +2504,7 @@ FROM    ( SELECT DISTINCT
            UPDATE  a  SET a.Display_File_Name=b.Display_File_Name FROM   Contract_Attachment a INNER JOIN cte_three b ON a.Contract_Attachment_UID =b.Contract_Attachment_UID
 ";
 
-      
+
 
             using (var context = new SPP_MVC_Entities())
             {
@@ -2489,7 +2618,7 @@ FROM    ( SELECT DISTINCT
 
                         model_WfTask_History.Backup_Date = DateTime.Now;
                         model_WfTask_History.Resubmit_Routing = null;
-                        model_WfTask_History.Remark = item.REMARK;
+                        model_WfTask_History.Remarks = item.REMARK;
                         WfTask_History_list.Add(model_WfTask_History);
 
                     }
@@ -2709,7 +2838,152 @@ FROM    ( SELECT DISTINCT
 
         }
 
-        #region 测试数据 -------------------Add By Hongzhong 2017/04
+        public static void MigrationProduction()
+        {
+
+            starMethodName("MigrationProduction");
+            string sql = @"
+---用户信息修正
+
+UPDATE CONTRACT_M SET APPLICANT='linja' WHERE APPLICANT='Jackey Lin'
+UPDATE dbo.WF_TASK SET OWNER='linja' WHERE OWNER='Jackey Lin'
+UPDATE dbo.CHANGE_HISTORY  SET NT_ACCOUNT='linja' WHERE NT_ACCOUNT='Jackey Lin'
+
+UPDATE CONTRACT_M SET APPLICANT='Wangy684' WHERE APPLICANT='wngy684'
+UPDATE dbo.WF_TASK SET OWNER='Wangy684' WHERE OWNER='wngy684'
+UPDATE dbo.CHANGE_HISTORY  SET NT_ACCOUNT='Wangy684' WHERE NT_ACCOUNT='wngy684'
+
+
+--1.Contract No  Version 重复
+
+--09361602031
+DELETE FROM  dbo.CONTRACT_M WHERE CONTRACT_M_UID='fe96714b-e37f-48fc-bca0-6da8a015d62f'
+DELETE FROM CONTRACT_D WHERE CONTRACT_M_UID='fe96714b-e37f-48fc-bca0-6da8a015d62f'
+--09361604008
+DELETE FROM  dbo.CONTRACT_M WHERE CONTRACT_M_UID='2a64df02-93e4-405f-9bbe-cb0158c5b0db'
+DELETE FROM CONTRACT_D WHERE CONTRACT_M_UID='2a64df02-93e4-405f-9bbe-cb0158c5b0db'
+--09361604028
+DELETE FROM  dbo.CONTRACT_M WHERE CONTRACT_M_UID='99e01d31-96db-4b18-94ae-e055b00d5cce'
+DELETE FROM CONTRACT_D WHERE CONTRACT_M_UID='99e01d31-96db-4b18-94ae-e055b00d5cce'
+--09361604030
+DELETE FROM  dbo.CONTRACT_M WHERE CONTRACT_M_UID='031e6e73-362a-4e37-af99-fb4b9cdbf30a'
+DELETE FROM CONTRACT_D WHERE CONTRACT_M_UID='031e6e73-362a-4e37-af99-fb4b9cdbf30a'
+--GPB1512002
+DELETE FROM  dbo.CONTRACT_M WHERE CONTRACT_M_UID='1ba40cef-83cd-4cd4-97cd-7836dfb35769'
+DELETE FROM CONTRACT_D WHERE CONTRACT_M_UID='1ba40cef-83cd-4cd4-97cd-7836dfb35769'
+
+--2.Contract Type 为空
+--- 09021608130 Existing contract upload in e-Contract system for record purpose.（不导入）
+--- 09021608131 existing contract for filling purpose only（不导入）
+---09491703030 wf_task 未有签核流程，（不导入）.
+DELETE FROM dbo.CHANGE_HISTORY WHERE OBJ_UID IN (SELECT CONTRACT_M_UID FROM dbo.CONTRACT_M WHERE CONTRACT_NO IN ('09021608130','09021608131','09491703030'))
+DELETE FROM dbo.CONTRACT_D WHERE CONTRACT_M_UID IN   (SELECT CONTRACT_M_UID FROM dbo.CONTRACT_M WHERE CONTRACT_NO IN ('09021608130','09021608131','09491703030'))
+DELETE FROM dbo.WF_TASK WHERE OBJ_NO IN ( '09021608130','09021608131','09491703030')
+DELETE FROM dbo.CONTRACT_M WHERE CONTRACT_NO IN ( '09021608130','09021608131','09491703030')
+UPDATE CONTRACT_M  SET CONTRACT_TYPE='Contractor Service Agreement'  WHERE CONTRACT_NO='09041608013'
+
+--3.找出Contract_M表中非GUID 字段并更新.转换成Guid
+DECLARE @oldID VARCHAR(50)
+SET @oldID='09131601021-v3'
+DECLARE @NewGuid VARCHAR(50)
+SET @NewGuid='5596BF04-E559-4CD5-9973-E8B1BA5E0476'
+UPDATE CONTRACT_M SET CONTRACT_M_UID=@NewGuid WHERE CONTRACT_M_UID=@oldID
+UPDATE CONTRACT_D SET CONTRACT_M_UID=@NewGuid WHERE CONTRACT_M_UID=@oldID
+UPDATE CHANGE_HISTORY SET OBJ_UID=@NewGuid WHERE OBJ_UID=@oldID
+
+DECLARE @oldID1 VARCHAR(50)
+SET @oldID1='09131601049-v5'
+DECLARE @NewGuid1 VARCHAR(50)
+SET @NewGuid1='ECEE6777-0033-4375-A26B-56882A2030DC'
+UPDATE CONTRACT_M SET CONTRACT_M_UID=@NewGuid1 WHERE CONTRACT_M_UID=@oldID1
+UPDATE CONTRACT_D SET CONTRACT_M_UID=@NewGuid1 WHERE CONTRACT_M_UID=@oldID1
+UPDATE CHANGE_HISTORY SET OBJ_UID=@NewGuid1 WHERE OBJ_UID=@oldID1
+
+
+DECLARE @oldID2 VARCHAR(50)
+SET @oldID2='09131602008-v3'
+DECLARE @NewGuid2 VARCHAR(50)
+SET @NewGuid2='42844D6E-9654-422B-9E25-2AAA23B60525'
+UPDATE CONTRACT_M SET CONTRACT_M_UID=@NewGuid2 WHERE CONTRACT_M_UID=@oldID2
+UPDATE CONTRACT_D SET CONTRACT_M_UID=@NewGuid2 WHERE CONTRACT_M_UID=@oldID2
+UPDATE CHANGE_HISTORY SET OBJ_UID=@NewGuid2 WHERE OBJ_UID=@oldID2
+
+
+DECLARE @oldID3 VARCHAR(50)
+SET @oldID3='09131603017-v5'
+DECLARE @NewGuid3 VARCHAR(50)
+SET @NewGuid3='6E00EBA0-06CF-4322-B7BB-C0BACCA87CAD'
+UPDATE CONTRACT_M SET CONTRACT_M_UID=@NewGuid3 WHERE CONTRACT_M_UID=@oldID3
+UPDATE CONTRACT_D SET CONTRACT_M_UID=@NewGuid3 WHERE CONTRACT_M_UID=@oldID3
+UPDATE CHANGE_HISTORY SET OBJ_UID=@NewGuid3 WHERE OBJ_UID=@oldID3
+
+
+---4.找出Contract_D 表中非GUID 的字段，转成GUID
+UPDATE CONTRACT_D SET CONTRACT_D_UID=NEWID() WHERE CONTRACT_D_UID IN (SELECT CONTRACT_D_UID FROM CONTRACT_D  WHERE  LEN(CONTRACT_D_UID) <>36)
+
+---5.找出WF_task表中非GUID字段，更新成GUID
+UPDATE WF_TASK SET UID=NEWID() WHERE LEN(UID)<>36
+
+---6.修改重复的OBJ_NO,TASK,ROLE,OWNER,ASSIGN_DATETIME 时间.
+UPDATE dbo.WF_TASK SET  ASSIGN_DATETIME=DATEADD(SECOND,1, ASSIGN_DATETIME)
+WHERE uid IN
+(
+SELECT UID FROM 
+(
+SELECT  * ,ROW_NUMBER() OVER (PARTITION BY OBJ_NO,TASK,ROLE,OWNER,ASSIGN_DATETIME ORDER BY  GETDATE()) AS rn
+ FROM  dbo.WF_TASK
+ ) t WHERE  t.rn>1
+ )
+
+         ";
+            using (var context = new SPP_ProductionEntities())
+            {
+                context.Database.ExecuteSqlCommand(sql);
+                context.SaveChanges();
+
+            }
+
+            endMethodName("MigrationProduction");
+        }
+
+        public static void Contract_Attachment_ToCMD()
+        {
+            starMethodName("Contract_Attachment_ToCMD");
+            using (var context = new SPP_MVC_Entities())
+            {
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("SELECT  'color 0a'".ToString());
+                sb.AppendLine("UNION ALL".ToString());
+                sb.AppendLine("SELECT  'echo %date% %time%'".ToString());
+                sb.AppendLine("UNION ALL".ToString());
+                sb.AppendLine("SELECT  'echo 正在批量重命名文件......'".ToString());
+                sb.AppendLine("UNION ALL".ToString());
+                sb.AppendLine("SELECT  'ren ' + '\"' + Original_File_Name + '\"' + ' ' + System_File_Name".ToString());
+                sb.AppendLine("FROM    Contract_Attachment".ToString());
+                sb.AppendLine("UNION ALL".ToString());
+                sb.AppendLine("SELECT  'echo 重命名完成'".ToString());
+                sb.AppendLine("UNION ALL".ToString());
+                sb.AppendLine("SELECT  'pause'".ToString());
+                sb.ToString();
+
+                var list = context.Database.SqlQuery<string>(sb.ToString());
+                StringBuilder sb2 = new StringBuilder();
+                foreach (var item in list)
+                {
+                    sb2.AppendLine(item.ToString());
+                }
+                var last = sb2.ToString();
+                byte[] bytes = Encoding.Default.GetBytes(last);
+                LocalFileHelper.CreateFile("Contract_Attachment.cmd", bytes);
+            }
+
+            endMethodName("Contract_Attachment_ToCMD");
+
+        }
+
+
+       #region 测试数据 -------------------Add By Hongzhong 2017/04
 
 
         public static void test_Data()
@@ -2782,7 +3056,6 @@ WHERE Company_UID=(SELECT  TOP 1 Company_UID FROM  ContractTemplate WHERE Compan
 
 
         }
-
 
         #endregion
 

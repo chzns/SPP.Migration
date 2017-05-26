@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="ComparisonHelper.cs" />
     <Compile Include="DbHelperSQL.cs" />
+    <Compile Include="LocalFileHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
